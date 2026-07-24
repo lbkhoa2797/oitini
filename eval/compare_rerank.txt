@@ -1,0 +1,304 @@
+================================================================================
+QUERY: magnon-phonon interaction in CrI3
+================================================================================
+Loading weights: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 391/391 [00:00<00:00, 33271.24it/s]
+[embedder] RAM — current: 42.0 MB, peak: 194.9 MB
+[embedder] VRAM allocated: 2271.2 MB
+[chroma] RAM — current: 0.4 MB, peak: 0.4 MB
+[bm25] RAM — current: 78.4 MB, peak: 86.9 MB
+Loading weights: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 393/393 [00:00<00:00, 14310.81it/s]
+[reranker] RAM — current: 40.5 MB, peak: 146.3 MB
+[reranker] VRAM allocated: 2271.2 MB
+  Dense only:
+    [0] rerank=0.983    2403.08180v1  conclusion  IV. CONCLUSION
+         In summary, we report thermal transport properties of the 2D vdW honeycomb ferromagnet CrI 3 , a long-sought topological...
+    [1] rerank=0.969    2406.12136v1       other  D. Magnon-phonon interaction
+         The interaction between magnons and phonons in 2D magnets is a fascinating area of study that has significant implicatio...
+    [2] rerank=0.917    2403.08180v1     results  III. RESULTS AND DISCUSSION
+         CrBr 3 [45] and CrCl 3 [46] in which the magnon bands cross each other at K points within the instrumental energy resolu...
+    [3] rerank=0.884    2403.08180v1     results  III. RESULTS AND DISCUSSION
+         5.0 meV, at which an observation of the hybridization gap is anticipated when spin-lattice coupling is taken into accoun...
+    [4] rerank=0.876    2210.15519v2     methods  5. Experimental realization
+         Experimentally, optomechancial coupling in various low-dimensional systems have been realized, such as a graphene on a s...
+  Sparse only:
+    [0] rerank=0.983    2403.08180v1  conclusion  IV. CONCLUSION
+         In summary, we report thermal transport properties of the 2D vdW honeycomb ferromagnet CrI 3 , a long-sought topological...
+    [1] rerank=0.908    2403.08180v1       other  Acknowledgements
+         layered honeycomb ferromagnets, Physical Review B, 104 (2021) 104419. - [30] T. Gorni, O. Baseggio, P. Delugas, I. Timro...
+    [2] rerank=0.906    2403.08180v1     results  III. RESULTS AND DISCUSSION
+         "# $%% &amp; D , measured at various temperatures. The dashed curves are guides to eyes. At low field 𝜅 /# increases sha...
+    [3] rerank=0.880    2103.13537v2       other  S2. Calculations of the magnetism-coupled phonon contributio
+         In few-layer CrI3, it has been established that the interlayer structural coupling can lead to Davydov splitting of the ...
+    [4] rerank=0.817    1808.00168v3       other  Competing interests
+         The authors declare no competing interests. Figure 1. Magnetic excitations in the 2D Ising ferromagnet CrI3. a , Top vie...
+  Hybrid (RRF):
+    [0] rerank=0.983    2403.08180v1  conclusion  IV. CONCLUSION
+         In summary, we report thermal transport properties of the 2D vdW honeycomb ferromagnet CrI 3 , a long-sought topological...
+    [1] rerank=0.969    2406.12136v1       other  D. Magnon-phonon interaction
+         The interaction between magnons and phonons in 2D magnets is a fascinating area of study that has significant implicatio...
+    [2] rerank=0.917    2403.08180v1     results  III. RESULTS AND DISCUSSION
+         CrBr 3 [45] and CrCl 3 [46] in which the magnon bands cross each other at K points within the instrumental energy resolu...
+    [3] rerank=0.908    2403.08180v1       other  Acknowledgements
+         layered honeycomb ferromagnets, Physical Review B, 104 (2021) 104419. - [30] T. Gorni, O. Baseggio, P. Delugas, I. Timro...
+    [4] rerank=0.906    2403.08180v1     results  III. RESULTS AND DISCUSSION
+         "# $%% &amp; D , measured at various temperatures. The dashed curves are guides to eyes. At low field 𝜅 /# increases sha...
+
+  Overlap:
+    dense  ∩ sparse : 1 / 5
+    dense  ∩ hybrid : 3 / 5
+    sparse ∩ hybrid : 3 / 5
+    unique to hybrid: 0
+
+  Avg rerank score:  dense=0.926  sparse=0.899  hybrid=0.937
+  Top-1 rerank score: dense=0.983  sparse=0.983  hybrid=0.983
+
+================================================================================
+QUERY: band gap in monolayer CrBr3 from DFT calculation
+================================================================================
+  Dense only:
+    [0] rerank=0.990    2212.02772v1  introduction  Introduction:
+         vdW technology 18, 19 or molecular beam epitaxy (MBE) growth 20, 21 . To this end, we present a STM/STS study of a magne...
+    [1] rerank=0.906    2112.10924v1       other  A family tree of two-dimensional magnetic materials with tun
+         (Left panels) Schematic diagrams of the Haldane and Kane-Mele models invoking respectively the time-reversal symmetry br...
+    [2] rerank=0.903    2212.02772v1     results  Discussion:
+         In summary, we have demonstrated a gate-tunable bandgap and inter-flat-band spacing of CrBr3 monolayer by 240 meV and 12...
+    [3] rerank=0.880    2212.02772v1       other  Electronic properties of CrBr3 monolayer on the G/h-BN devic
+         2f), which is tentatively assigned to the highest occupied band near the VBM of CrBr3. The onset of the VB is better vis...
+    [4] rerank=0.876    2411.18227v1     results  Results
+         2b, with those on bare NbSe2 listed as well for comparison. When the stabilization bias voltage was set as V b = 1.7 V, ...
+  Sparse only:
+    [0] rerank=0.990    2212.02772v1  introduction  Introduction:
+         vdW technology 18, 19 or molecular beam epitaxy (MBE) growth 20, 21 . To this end, we present a STM/STS study of a magne...
+    [1] rerank=0.918    2212.02772v1    abstract  Abstract:
+         Emergent quantum phenomena in two-dimensional van der Waal (vdW) magnets are largely governed by the interplay between t...
+    [2] rerank=0.903    2212.02772v1     results  Discussion:
+         In summary, we have demonstrated a gate-tunable bandgap and inter-flat-band spacing of CrBr3 monolayer by 240 meV and 12...
+    [3] rerank=0.895    2303.17926v1       other  DFT calculations
+         Figure S7 shows matrix elements in the Brillouin zone, which denote the probabilities of optical transitions. By compari...
+    [4] rerank=0.892    2212.02772v1       other  Gate-tunable STS measurements of CrBr3 monolayer on the G/h-
+         Our ability to gate the system allows us to study the fundamental issue of the importance of electron-electron interacti...
+  Hybrid (RRF):
+    [0] rerank=0.990    2212.02772v1  introduction  Introduction:
+         vdW technology 18, 19 or molecular beam epitaxy (MBE) growth 20, 21 . To this end, we present a STM/STS study of a magne...
+    [1] rerank=0.918    2212.02772v1    abstract  Abstract:
+         Emergent quantum phenomena in two-dimensional van der Waal (vdW) magnets are largely governed by the interplay between t...
+    [2] rerank=0.906    2112.10924v1       other  A family tree of two-dimensional magnetic materials with tun
+         (Left panels) Schematic diagrams of the Haldane and Kane-Mele models invoking respectively the time-reversal symmetry br...
+    [3] rerank=0.903    2212.02772v1     results  Discussion:
+         In summary, we have demonstrated a gate-tunable bandgap and inter-flat-band spacing of CrBr3 monolayer by 240 meV and 12...
+    [4] rerank=0.895    2303.17926v1       other  DFT calculations
+         Figure S7 shows matrix elements in the Brillouin zone, which denote the probabilities of optical transitions. By compari...
+
+  Overlap:
+    dense  ∩ sparse : 2 / 5
+    dense  ∩ hybrid : 3 / 5
+    sparse ∩ hybrid : 4 / 5
+    unique to hybrid: 0
+
+  Avg rerank score:  dense=0.911  sparse=0.919  hybrid=0.922
+  Top-1 rerank score: dense=0.990  sparse=0.990  hybrid=0.990
+
+================================================================================
+QUERY: out-of-plane phonon modes couple to magnetic moment in CrBr3
+================================================================================
+  Dense only:
+    [0] rerank=0.889    2212.01754v1       other  Probing defects and spin-phonon coupling in CrSBr via resona
+         magnetic properties is valuable for creating spin textures or magnetic orders for application in nanospintronics and mem...
+    [1] rerank=0.847    2103.13537v2       other  Twist engineering of the two-dimensional magnetism in double
+         . Out-of-plane magnetic field ( B ⊥ ) is known to introduce sharp spin-flip transitions in few-layer CrI3, which is nice...
+    [2] rerank=0.804    2405.07853v1     results  Results and Discussion.
+         the order-parameter-like curve for the eye. <!-- image --> In Fig. 3(f-h) we plot the extracted parameters of the magnet...
+    [3] rerank=0.659    2604.12866v1       other  Acoustically-driven magnons in CrSBr bilayers
+         [15]. Recent experimental [16, 17] and theoretical [18] studies show that CrSBr exhibits a similar strong response to me...
+    [4] rerank=0.640    2212.01754v1       other  Probing defects and spin-phonon coupling in CrSBr via resona
+         pointing along the direction of the needle. As the unit cell of CrSBr contains 6 atoms, we anticipate 18 phonon modes in...
+  Sparse only:
+    [0] rerank=0.889    2212.01754v1       other  Probing defects and spin-phonon coupling in CrSBr via resona
+         magnetic properties is valuable for creating spin textures or magnetic orders for application in nanospintronics and mem...
+    [1] rerank=0.842    1808.00168v3    abstract  Abstract
+         study the spin wave excitations in the 2D Ising honeycomb ferromagnet CrI3 using polarized micro-Raman spectroscopy. Bas...
+    [2] rerank=0.796    2303.17926v1  conclusion  Summary
+         The results presented here demonstrate that the magnetic phase transition can be manifested in optical spectra. The temp...
+    [3] rerank=0.775    2006.07605v2       other  Intrinsic 2D-XY ferromagnetism in a van der Waals monolayer
+         taken at various temperatures. Remanence and coercive become negligible at 13 K, indicative of a magnetic phase transiti...
+    [4] rerank=0.716    2401.07828v1     results  3. RESULTS AND DISCUSSIONS
+         -axis. Using parameters for CrSBr, we simulate the magnetization maps resulting from magnetoelastic coupling in the pres...
+  Hybrid (RRF):
+    [0] rerank=0.889    2212.01754v1       other  Probing defects and spin-phonon coupling in CrSBr via resona
+         magnetic properties is valuable for creating spin textures or magnetic orders for application in nanospintronics and mem...
+    [1] rerank=0.847    2103.13537v2       other  Twist engineering of the two-dimensional magnetism in double
+         . Out-of-plane magnetic field ( B ⊥ ) is known to introduce sharp spin-flip transitions in few-layer CrI3, which is nice...
+    [2] rerank=0.842    1808.00168v3    abstract  Abstract
+         study the spin wave excitations in the 2D Ising honeycomb ferromagnet CrI3 using polarized micro-Raman spectroscopy. Bas...
+    [3] rerank=0.804    2405.07853v1     results  Results and Discussion.
+         the order-parameter-like curve for the eye. <!-- image --> In Fig. 3(f-h) we plot the extracted parameters of the magnet...
+    [4] rerank=0.796    2303.17926v1  conclusion  Summary
+         The results presented here demonstrate that the magnetic phase transition can be manifested in optical spectra. The temp...
+
+  Overlap:
+    dense  ∩ sparse : 1 / 5
+    dense  ∩ hybrid : 3 / 5
+    sparse ∩ hybrid : 3 / 5
+    unique to hybrid: 0
+
+  Avg rerank score:  dense=0.768  sparse=0.804  hybrid=0.836
+  Top-1 rerank score: dense=0.889  sparse=0.889  hybrid=0.889
+
+================================================================================
+QUERY: exciton-magnon coupling in CrSBr
+================================================================================
+  Dense only:
+    [0] rerank=0.995    2512.05835v2       other  Boltzmann transport theory of magnon-exciton drag
+         Zakhar A. Iakovlev, 1 Akashdeep Kamra, 2 and Mikhail M. Glazov 1
+
+1 Ioffe Institute, 194021, St. Petersburg, Russia
+
+2 D...
+    [1] rerank=0.994    2209.13744v1       other  Correspondence to: dixiao@uw.edu; xuxd@uw.edu
+         Abstract:  The  interaction  between  distinct  excitations  in  solids  is  of  both  fundamental interest and technolo...
+    [2] rerank=0.986    2308.04895v2       other  Strong Exciton-Phonon Coupling as a Fingerprint  of  Magneti
+         Kaiman Lin 1,2 , Xiaoxiao Sun 2 , Florian Dirnberger 3 , Yi Li 2,4 , Jiang Qu 5 , Peiting Wen 2,4 , Zdenek Sofer 6 , Alj...
+    [3] rerank=0.983    2308.04895v2    abstract  Graphic abstract
+         <!-- image --> Exciton-phonon coupling, 1 the interaction between excitons and lattice vibrations (phonons), is pivotal ...
+    [4] rerank=0.980    2209.13744v1       other  Main text
+         Magnons, the quanta of spin waves, have recently become an attractive component of hybrid quantum devices due to their a...
+  Sparse only:
+    [0] rerank=0.995    2512.05835v2       other  Boltzmann transport theory of magnon-exciton drag
+         Zakhar A. Iakovlev, 1 Akashdeep Kamra, 2 and Mikhail M. Glazov 1
+
+1 Ioffe Institute, 194021, St. Petersburg, Russia
+
+2 D...
+    [1] rerank=0.994    2209.13744v1       other  Correspondence to: dixiao@uw.edu; xuxd@uw.edu
+         Abstract:  The  interaction  between  distinct  excitations  in  solids  is  of  both  fundamental interest and technolo...
+    [2] rerank=0.980    2209.13744v1       other  Main text
+         Magnons, the quanta of spin waves, have recently become an attractive component of hybrid quantum devices due to their a...
+    [3] rerank=0.979    2511.20268v1  conclusion  Conclusion
+         Our results demonstrate that magnetic order can fundamentally alter the optical selection rules of a van der Waals semic...
+    [4] rerank=0.975    2301.07593v2       other  TUNABLE MAGNETO-OPTIC PROPERTIES
+         and FM ( 〈 θ ( T ) 〉 &gt; θ (0) ) configurations. FM order illustrated for B ext ‖ c . b Model of the temperature depend...
+  Hybrid (RRF):
+    [0] rerank=0.995    2512.05835v2       other  Boltzmann transport theory of magnon-exciton drag
+         Zakhar A. Iakovlev, 1 Akashdeep Kamra, 2 and Mikhail M. Glazov 1
+
+1 Ioffe Institute, 194021, St. Petersburg, Russia
+
+2 D...
+    [1] rerank=0.994    2209.13744v1       other  Correspondence to: dixiao@uw.edu; xuxd@uw.edu
+         Abstract:  The  interaction  between  distinct  excitations  in  solids  is  of  both  fundamental interest and technolo...
+    [2] rerank=0.986    2308.04895v2       other  Strong Exciton-Phonon Coupling as a Fingerprint  of  Magneti
+         Kaiman Lin 1,2 , Xiaoxiao Sun 2 , Florian Dirnberger 3 , Yi Li 2,4 , Jiang Qu 5 , Peiting Wen 2,4 , Zdenek Sofer 6 , Alj...
+    [3] rerank=0.983    2308.04895v2    abstract  Graphic abstract
+         <!-- image --> Exciton-phonon coupling, 1 the interaction between excitons and lattice vibrations (phonons), is pivotal ...
+    [4] rerank=0.980    2209.13744v1       other  Main text
+         Magnons, the quanta of spin waves, have recently become an attractive component of hybrid quantum devices due to their a...
+
+  Overlap:
+    dense  ∩ sparse : 3 / 5
+    dense  ∩ hybrid : 5 / 5
+    sparse ∩ hybrid : 3 / 5
+    unique to hybrid: 0
+
+  Avg rerank score:  dense=0.987  sparse=0.984  hybrid=0.987
+  Top-1 rerank score: dense=0.995  sparse=0.995  hybrid=0.995
+
+================================================================================
+QUERY: Curie temperature of monolayer CrI3
+================================================================================
+  Dense only:
+    [0] rerank=0.998    2007.14379v3       other  III.3. The Curie temperature of CrI 3 , CrBr 3 and CrGeTe 3
+         TABLE I: Curie temperatures for CrI 3 CrBr 3 and CrGeTe 3 | Compound | CrI 3 ( R ¯ 3) | CrBr 3 ( R ¯ 3) | CrGeTe 3 ( R ¯...
+    [1] rerank=0.997    2012.03099v2  introduction  I. INTRODUCTION
+         The two-dimensional wan der Waals magnet CrI 3 has attracted interest in the last few years, as well as the rest of the ...
+    [2] rerank=0.993    2001.04594v1       other  2D van der Waals Nanoplatelets with Robust Ferromagnetism
+         confirms retention of ferromagnetism in these nanoplatelets. Multiple distinct inflections are observed at intermediate ...
+    [3] rerank=0.993    2105.07958v3       other  III.5. Importance of long-range interactions for the quantit
+         While the approximate results of the analytical formula are good as a first screening, further neighbours can still lead...
+    [4] rerank=0.992    2105.07958v3       other  III.5. Importance of long-range interactions for the quantit
+         estimation of the Curie temperature. It is worth noting that the experimental Curie temperature for all three Cr-compoun...
+  Sparse only:
+    [0] rerank=0.998    2104.13525v2     results  III. Results and discussion
+         CrI3, the amplitudes of J2 are relatively small, and the sign changes around e = -2%, corresponding to the FM-to-AFM tra...
+    [1] rerank=0.993    2001.04594v1       other  2D van der Waals Nanoplatelets with Robust Ferromagnetism
+         confirms retention of ferromagnetism in these nanoplatelets. Multiple distinct inflections are observed at intermediate ...
+    [2] rerank=0.993    2105.07958v3       other  III.5. Importance of long-range interactions for the quantit
+         While the approximate results of the analytical formula are good as a first screening, further neighbours can still lead...
+    [3] rerank=0.991    2009.09212v1    abstract  Abstract
+         Two-dimensional (2D) ferromagnets with high Curie temperature have long been the pursuit for electronic and spintronic a...
+    [4] rerank=0.988    2001.04594v1       other  2D van der Waals Nanoplatelets with Robust Ferromagnetism
+         Michael C. De Siena, 1‡ Sidney E. Creutz, 1‡ ∥ Annie Regan, 1§ Paul Malinowski, 2 Qianni Jiang, 2 Kyle T. Kluherz, 1,4 G...
+  Hybrid (RRF):
+    [0] rerank=0.998    2007.14379v3       other  III.3. The Curie temperature of CrI 3 , CrBr 3 and CrGeTe 3
+         TABLE I: Curie temperatures for CrI 3 CrBr 3 and CrGeTe 3 | Compound | CrI 3 ( R ¯ 3) | CrBr 3 ( R ¯ 3) | CrGeTe 3 ( R ¯...
+    [1] rerank=0.998    2104.13525v2     results  III. Results and discussion
+         CrI3, the amplitudes of J2 are relatively small, and the sign changes around e = -2%, corresponding to the FM-to-AFM tra...
+    [2] rerank=0.997    2012.03099v2  introduction  I. INTRODUCTION
+         The two-dimensional wan der Waals magnet CrI 3 has attracted interest in the last few years, as well as the rest of the ...
+    [3] rerank=0.993    2001.04594v1       other  2D van der Waals Nanoplatelets with Robust Ferromagnetism
+         confirms retention of ferromagnetism in these nanoplatelets. Multiple distinct inflections are observed at intermediate ...
+    [4] rerank=0.993    2105.07958v3       other  III.5. Importance of long-range interactions for the quantit
+         While the approximate results of the analytical formula are good as a first screening, further neighbours can still lead...
+
+  Overlap:
+    dense  ∩ sparse : 2 / 5
+    dense  ∩ hybrid : 4 / 5
+    sparse ∩ hybrid : 3 / 5
+    unique to hybrid: 0
+
+  Avg rerank score:  dense=0.995  sparse=0.993  hybrid=0.996
+  Top-1 rerank score: dense=0.998  sparse=0.998  hybrid=0.998
+
+================================================================================
+QUERY: spin wave dispersion in van der Waals magnets
+================================================================================
+  Dense only:
+    [0] rerank=0.917    2411.14979v2       other  Generation and detection of coherent spin waves
+         In the prototypical coherent spin-wave transport experiment, one antenna excites a spin wave of a certain frequency and ...
+    [1] rerank=0.907    2307.13414v2  conclusion  IV. SUMMARY
+         In this paper we have analyzed spin wave modes in a class of van der Waals magnetic materials, that includes transition-...
+    [2] rerank=0.871    2001-05981v1       other  Evidence of standing spin-waves in a van der Waals magnetic 
+         Lucky N. Kapoor, 1, ∗ Supriya Mandal, 1, ∗ Meghan Patankar, 1 1, 2 1 1, † Soham Manni, A. Thamizhavel, and Mandar M. Des...
+    [3] rerank=0.862    2411.17344v2  conclusion  VII. CONCLUSION
+         In this study, we demonstrated wideband wide-field quantitative imaging of the spin-wave propagation using the AC Zeeman...
+    [4] rerank=0.784    2009.06849v2     methods  Method of analysis
+         = 2.76Å , quantum well width 𝑤 = 5.52Å , and the spin-splitting Δ = 0.5 eV in each well. The height of the vdW barriers ...
+  Sparse only:
+    [0] rerank=0.917    2411.14979v2       other  Generation and detection of coherent spin waves
+         In the prototypical coherent spin-wave transport experiment, one antenna excites a spin wave of a certain frequency and ...
+    [1] rerank=0.907    2307.13414v2  conclusion  IV. SUMMARY
+         In this paper we have analyzed spin wave modes in a class of van der Waals magnetic materials, that includes transition-...
+    [2] rerank=0.860    2208.10991v2       other  Visualization of moir´ e magnons in monolayer ferromagnet
+         Somesh Chandra Ganguli, 1, ∗ Markus Aapro, 1 Shawulienu Kezilebieke, 2 Mohammad Amini, 1 Jose L. Lado, 1, ∗ and Peter Li...
+    [3] rerank=0.846    2401.13984v2       other  APPENDIX: COMPUTING CRITICAL TEMPERATURE
+         Clark, M. He, X. Zhang, T. Taniguchi, K. Watanabe, W. Yao, D. Xiao, M. A. McGuire, D. H. Cobden, and X. Xu, Atomically T...
+    [4] rerank=0.826    2307.13414v2  introduction  I. INTRODUCTION
+         Two-dimensional (2D) van-der-Waals magnetic materials are currently of great interest due to expected applications in at...
+  Hybrid (RRF):
+    [0] rerank=0.917    2411.14979v2       other  Generation and detection of coherent spin waves
+         In the prototypical coherent spin-wave transport experiment, one antenna excites a spin wave of a certain frequency and ...
+    [1] rerank=0.907    2307.13414v2  conclusion  IV. SUMMARY
+         In this paper we have analyzed spin wave modes in a class of van der Waals magnetic materials, that includes transition-...
+    [2] rerank=0.871    2001-05981v1       other  Evidence of standing spin-waves in a van der Waals magnetic 
+         Lucky N. Kapoor, 1, ∗ Supriya Mandal, 1, ∗ Meghan Patankar, 1 1, 2 1 1, † Soham Manni, A. Thamizhavel, and Mandar M. Des...
+    [3] rerank=0.862    2411.17344v2  conclusion  VII. CONCLUSION
+         In this study, we demonstrated wideband wide-field quantitative imaging of the spin-wave propagation using the AC Zeeman...
+    [4] rerank=0.860    2208.10991v2       other  Visualization of moir´ e magnons in monolayer ferromagnet
+         Somesh Chandra Ganguli, 1, ∗ Markus Aapro, 1 Shawulienu Kezilebieke, 2 Mohammad Amini, 1 Jose L. Lado, 1, ∗ and Peter Li...
+
+  Overlap:
+    dense  ∩ sparse : 2 / 5
+    dense  ∩ hybrid : 4 / 5
+    sparse ∩ hybrid : 3 / 5
+    unique to hybrid: 0
+
+  Avg rerank score:  dense=0.868  sparse=0.871  hybrid=0.884
+  Top-1 rerank score: dense=0.917  sparse=0.917  hybrid=0.917
+
+================================================================================
+SUMMARY over 6 queries
+================================================================================
+     dense  mean_avg_rerank = 0.909  (per-query: 0.926, 0.911, 0.768, 0.987, 0.995, 0.868)
+    sparse  mean_avg_rerank = 0.912  (per-query: 0.899, 0.919, 0.804, 0.984, 0.993, 0.871)
+    hybrid  mean_avg_rerank = 0.927  (per-query: 0.937, 0.922, 0.836, 0.987, 0.996, 0.884)
+
+  Wins (by avg rerank score): {'dense': 0, 'sparse': 0, 'hybrid': 6}

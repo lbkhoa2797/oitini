@@ -1,0 +1,15 @@
+reports/
+archive/
+logs/
+.env
+.venv/
+traces/
+data/papers/*
+data/parsed/*
+data/index/*
+data/corpus_index.json
+data/chunks.jsonl
+data/mp_cache.json
+.vscode/
+.claude/
+__pycache__/

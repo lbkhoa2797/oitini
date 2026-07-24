@@ -1,0 +1,66 @@
+# LLM provider SDK for calling Anthropic Claude models directly
+anthropic
+
+# Data validation, typed schemas, structured configs, and tool/input models
+pydantic
+
+# Better terminal output: pretty logs, tables, tracebacks, progress display
+rich
+
+# Load environment variables from a .env file, e.g. API keys and config
+python-dotenv
+
+# Search and fetch papers from arXiv; useful for research/retrieval agents
+arxiv
+
+# Parse and convert documents such as PDFs, DOCX, PPTX, HTML, and tables
+# into structured formats for downstream RAG pipelines
+docling
+
+# Generate local text embeddings for semantic search and document retrieval
+sentence-transformers
+
+# Vector database for storing embeddings and running similarity search
+chromadb
+
+# BM25 keyword search/ranking; useful for hybrid retrieval with vector search
+rank-bm25
+
+# Lightweight PDF text extraction and page-level PDF parsing
+pypdf
+
+# Create URL/file-system-safe slugs from titles, document names, or IDs
+python-slugify
+
+# Progress bars for long-running ingestion, embedding, indexing, or scraping jobs
+tqdm
+
+# Graph-based orchestration framework for building stateful, multi-step AI agents
+langgraph
+
+# SQLite persistence/checkpointing backend for LangGraph agent state
+langgraph-checkpoint-sqlite
+
+# Atomic Simulation Environment; useful if the agent works with chemistry,
+# materials science, molecular structures, or scientific simulations
+ase
+
+# Materials Project API client for querying crystal structures and properties
+mp-api
+
+# LangChain integration package for using Anthropic models inside LangChain/LangGraph
+langchain-anthropic
+
+# Official Python SDK for Model Context Protocol clients/servers;
+# [cli] installs the command-line extras
+mcp[cli]
+
+# Higher-level framework for building MCP servers/tools more quickly
+fastmcp
+
+# Tracing, debugging, evaluation, and observability for LangChain/LangGraph apps
+langsmith>=0.1.63
+
+# Floor for the @traceable <-> LangGraph shared tracing context (traceable
+# functions nesting under node runs); normally pulled in transitively
+langchain-core>=0.2.14

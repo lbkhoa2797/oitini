@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Trace · cc2275fc</title>
+
+<style>
+  :root {
+    --bg:        #faf9f7;
+    --bg2:       #ffffff;
+    --bg3:       #f0ede8;
+    --border:    #ccc5bb;
+    --text:      #1a1714;
+    --dim:       #5a534e;
+    --accent:    #b06020;
+    --gold:      #8f4d18;
+    --lavender:  #4e3080;
+    --sage:      #165c2e;
+    --peach:     #962e10;
+    --mint:      #5e3e08;
+    --badge-bg:  #e8e2da;
+    --thought-bg: rgba(78,48,128,.06);
+    --sage-bg:   rgba(22,92,46,.08);
+    --sage-border: rgba(22,92,46,.2);
+    --peach-bg:  rgba(150,46,16,.08);
+    --peach-border: rgba(150,46,16,.2);
+    --mint-border: rgba(94,62,8,.2);
+    --jk: #1a4f8a;
+    --js: #1a5c2e;
+    --jn: #7a4800;
+    --jb: #8a2010;
+    --radius:    8px;
+    --mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+    --sans: system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    padding: 32px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .trace-header {
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    animation: fadeSlide .4s ease both;
+  }
+  .trace-header h1 {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: .03em;
+    margin-bottom: 8px;
+  }
+  .meta-grid {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .meta-item { color: var(--dim); font-size: 11px; }
+  .meta-item span { color: var(--text); }
+  .prompt-box {
+    background: var(--bg3);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .prompt-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* ── Steps ── */
+  .step {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    margin-bottom: 18px;
+    overflow: hidden;
+    animation: fadeSlide .4s ease both;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-num {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: .05em;
+  }
+  .stop-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--badge-bg);
+    color: var(--dim);
+    letter-spacing: .06em;
+  }
+  .chevron {
+    margin-left: auto;
+    color: var(--dim);
+    transition: transform .2s;
+    font-size: 11px;
+  }
+  .step.collapsed .chevron { transform: rotate(-90deg); }
+  .step.collapsed .step-body { display: none; }
+  .step-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Thoughts ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+  .thoughts .section-label { color: var(--lavender); }
+  .thought-text {
+    background: var(--thought-bg);
+    border-left: 3px solid var(--lavender);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 9px 12px;
+    color: var(--lavender);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12.5px;
+  }
+
+  /* ── Tool calls / results ── */
+  .tools-grid { display: flex; flex-direction: column; gap: 10px; }
+
+  .tool-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .tool-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .tool-call .tool-card-header  { background: var(--sage-bg);  color: var(--sage);  border-bottom: 1px solid var(--sage-border); }
+  .tool-result .tool-card-header { background: var(--peach-bg); color: var(--peach); border-bottom: 1px solid var(--peach-border); }
+
+  .tool-id { font-size: 10px; color: var(--dim); margin-left: auto; font-weight: 400; }
+  .tool-body {
+    padding: 10px 12px;
+    background: var(--bg3);
+  }
+  pre.json {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.55;
+  }
+  /* Minimal JSON syntax highlight */
+  .jk { color: var(--jk); }   /* key    */
+  .js { color: var(--js); }   /* string */
+  .jn { color: var(--jn); }   /* number */
+  .jb { color: var(--jb); }   /* bool/null */
+
+  /* ── Final answer ── */
+  .final-answer {
+    border: 1px solid var(--mint-border);
+    border-top: 3px solid var(--mint);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    padding: 20px 24px;
+    margin-top: 8px;
+    animation: fadeSlide .4s ease both;
+  }
+  .final-answer .section-label { color: var(--mint); font-size: 11px; margin-bottom: 10px; }
+  .final-answer-text {
+    color: var(--mint);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.75;
+    font-size: 13px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    color: var(--dim);
+    font-size: 11px;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0);   }
+  }
+</style>
+</head>
+<body>
+
+
+<div class="trace-header">
+  <h1>⬡ ReAct Agent Trace &nbsp;·&nbsp; cc2275fc</h1>
+  <div class="meta-grid">
+    <div class="meta-item">Model <span>claude-sonnet-4-6</span></div>
+    <div class="meta-item">Started <span>2026-07-16 11:50:47</span></div>
+    <div class="meta-item">Elapsed <span>1204.97s</span></div>
+  </div>
+  <div class="prompt-label">User Prompt</div>
+  <div class="prompt-box">Help me summarize the transport properties of Silicon and then produce the Perturbo&#x27;s electron-phonon database Si_epr.h5. Cite the literatures for your claim.</div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 0</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">I&#x27;ll start by searching the literature for Silicon&#x27;s transport properties and querying the Materials Project for its structural/electronic properties simultaneously.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (2)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;literature_search
+    <span class="tool-id">toolu_011BZqU342DSkAibVTBnsoL3</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;query&quot;</span>: <span class="js">&quot;Silicon electronic transport properties electron-phonon coupling mobility&quot;</span>,
+  <span class="jk">&quot;top_k&quot;</span>: <span class="jn">8</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;query_materials_project
+    <span class="tool-id">toolu_013ntqiEgKeQQqBfEJRfPvw8</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;Si&quot;</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (2)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 literature_search
+    <span class="tool-id">toolu_011BZqU342DSkAibVTBnsoL3</span>
+  </div>
+  <div class="tool-body"><pre class="json">[
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2509-10192v1::c0022&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2509.10192v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Spectroscopy and transport of nonpolarons in silicon and germanium: the influence of doping and temperature&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2025</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;conclusion&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;We have presented a comprehensive first-principles investigation of many-body effects in the spectral and transport properties of silicon and germanium, two archetypal covalent semiconductors. Our results reveal distinct nonpolaronic spectral features that require the full cumulant expansion for accurate resolution, with material-dependent amplitudes and consequences for measurable properties. Temperature-dependent spectral functions show that Si exhibits relatively symmetric electron-phonon coupling at both band edges, while Ge displays pronounced asymmetry, with stronger coupling at the valence band maximum and much weaker coupling at the conduction band minimum. This asymmetry correlates with Ge&#x27;s consistently higher electron mobility, as reduced CBM coupling leads to longer carrier lifetimes and lower phonon-limited scattering rates. Doping studies demonstrate that increased carrier concentrations broaden spectral peaks and compress QP-satellite separation by increasing the available phase space for scattering near the Fermi level. These effects are more pronounced in Si than in Ge, reflecting Ge&#x27;s intrinsically weaker electron-phonon coupling. The DFPT scattering potentials confirm that short-range crystal-field interactions dominate in both materials, consistent with their nonpolar, covalent bonding character. Mobility calculations performed within the Kubo-Greenwood formalism, and supplemented by ionizedimpurity scattering models, reproduce experimental trends across doping levels. The trends in mobility are directly linked to the spectral features: broader QP peaks and enhanced satellite weight correspond to stronger scattering and reduced mobility. The agreement with experiment highlights the importance of combining first-principles phonon-limited transport with realistic defect-scattering models when modeling doped semiconductors. Overall, this work establishes the cumulant expansion as an essential tool for describing electron-phonon coupling in nonpolar semiconductors, providing quantitative links between spectroscopic fingerprints and transport properties. The methodology and insights developed here are broadly FIG. 9. Electron ( µ e , blue) and hole ( µ h , orange) mobilities at T = 300K as a function of carrier concentration n for (a) silicon and (b) germanium. Solid lines ( µ CE ,e , µ CE ,h ) denote values using the CE spectral functions. Dashed lines ( µ total e , µ total h ) correspond to total mobilities including both e-ph and ionized impurity scattering. Experimental data[3, 44-51] for electrons (blue circles) and holes (orange triangles) are shown for comparison. &lt;!-- image --&gt; - [1] C. Jacoboni and P. Lugli, The Monte Carlo Method for Semiconductor Device Simulation (Springer, 1989). - [2] D. L. Rode, Low-field electron transport, in Semiconductors and Semimetals , Vol. 10 (Academic Press, 1975) pp. 1-89. - [3] C. Canali et al. , Electron and hole drift velocity measurements in silicon and their empirical relation to electric field and temperature, IEEE Transactions on Electron Devices 22 , 1045 (1975). - [4] P. P. Debye and E. M. Conwell, Mobility of electrons in germanium, Physical Review 87 , 1131-1132 (1952).&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.988</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2312-00577v1::c0026&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2312.00577v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Phonon-Limited Transport in 2D Materials: A Unified Approach for ab initio Mobility and Current Calculations&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2023</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;methods&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;impact on the transport properties of TMDCs [36]. Hence, the calculated MoS 2 mobilities accounting for electron-phonon scattering only should be larger than the experimental ones, which suffer from these different scattering sources. With a value of 221 cm 2 /Vs for monolayer MoS 2 , we are in a range compatible with experimental data, knowing that the inclusion of SOPS and CIS would decrease the mobility bellow 100 cm 2 /Vs [36]. This sanity check gives us confidence in the developed computational framework. Another possibility to access its accuracy consists of simulating materials for which there are less uncertainties in the mobility value. Silicon emerges as the ideal candidate to do that and to further validate our methodology. We obtain a phonon-limited electron mobility of 1452 cm 2 /Vs for bulk Silicon. This result aligns very well with with experimental values, which lie between 1300 and 1450 cm 2 /Vs [81, 94, 95]. On the modeling side, the range is broader and encompasses values between 1080 and 1970 cm 2 /Vs [24, 55, 96, 97]. Recent investigations narrowed down this range to 1305-1555 cm 2 /Vs [57]. This study meticulously analyzed the influence of various simulation parameters on the mobility. Different exchange and correlation functionals, spin-orbit coupling, and GW quasiparticle corrections were tested. It was found that the most reliable theoretical estimate for the mobility of bulk Silicon is 1366 cm 2 /Vs. Interestingly, when employing simulation parameters similar to ours - specifically, the use of GGA, no spin-orbit coupling, and no crystal relaxation (experimental lattice constant) - they obtained a mobility of 1457 cm 2 /Vs, a value almost identical to ours. This excellent agreement with both experimental data and the calculations of [57] reinforces our confidence in the accuracy of our modeling approach and demonstrates its application potential beyond just TMDCs. So far we have considered mobility calculations under intrinsic carrier concentrations, where the Fermi level is located in the middle of the TMDC band gap. Given the fact that semiconductors are doped in most applications, it is crucial to explore their transport properties at higher carrier concentrations too. To this end, we computed with LBTE the phonon-limited electron mobility of the TMDCs as a function of the carrier density and temperature. Our findings are shown in Fig. 6. The mobilities were determined as a function of the Fermi level, which was shifted upwards, from the middle of the band gap into the conduction band. The corresponding carrier density was then subsequently computed with Eq. (29). The calculated mobilities exhibit the expected behavior: they initially remain flat as the carrier concentration increases up to 10 12 cm -2 . Above this point higher energy states in the&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.98</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2007-01090v1::c0005&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2007.01090v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Electronic Transport of Two-Dimensional Ultrawide Bandgap Material h-BeO&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2020</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;× 10 12 cm -2 , when it is as high as 833 cm 2 V -1 s -1 at 100 K. The slight decrease of µ with increasing carrier concentration derives from the higher density of electronic states the stronger electron-phonon coupling in Γ valley. FIG. 4. (a) The electronic scattering rates of the LO mode above CBM at 300 K with three strains ( ε =0.0%, 6.0% and 10.0 %). (b) The electron carrier mobilities vary with the strains at different temperatures when the carrier concentration at 1 × 10 12 cm -2 . &lt;!-- image --&gt; Furthermore, the biaxial strain is also calculated due to the distinctive modulation effect on the many physical properties of 2D materials 27,28 and the compressive strain is out of consideration because of the presence of imaginary frequency around Γ point in the phonon dispersions (see the supplementary material). Under the tensile strain, the increasing atomic distances result in the narrowing energy gap between bonding and antibonding states, as the value changes of E gap , E σ and E π summarised in Tab.I. Meanwhile, the electronic effective mass gets lighter under larger strain and reduce to 0.589 m e with ε =10.0%. But, it should be also noted that the strain effect on the electron-phonon coupling. Normally, the tensile strain can soften the phonons. And the electron-phonon coupling matrix element are generally inverse correlation with phonon frequency. Hence, there are higher electron-phonon coupling strength and electronic scattering rates under larger strain, as shown in Fig.4(a). Simultaneously considering various factors of electronic transport, the positive influence of electronic effective mass change, and the negative influence of electron-phonon scattering enhancement, the result is that µ increases with increasing the degree of strain, and reaches the maximum at ε =8.0 % before it starts decreasing. At room temperature, suitable strain can raise the mobility to ∼ 1000 cm 2 V -1 s -1 with n 2D =1 × 10 12 cm -2 , when the mobility can even go up to ∼ 2000 cm 2 V -1 s -1 at slight lower temperature of 200 K. In summary, we have systematically investigated the electronic structure, phonon dispersions, electron-phonon coupling, and carrier mobility of monolayer h-BeO using firstprinciples calculations with Boltzmann transport theory. It is found that monolayer h-BeO is a UWBG material with the indirect bandgap of 7.05 eV in the HSE functional, which is from the two atomic electronegativity difference. The polarity also results in that the LO phonons generate the macroscopic polarization field and couple to electrons by the Fr¨ ohlich interaction. And the mirror symmetry leads to the negligible effect of ZA phonons on electronic transport. By considering the electron-phonon scattering,&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.96</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2003-13782v1::c0015&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2003.13782v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Long-range quadrupole electron-phonon interaction from first principles&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2020</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The effect of the quadrupole e -ph interaction on the mobility is noteworthy. Figure 5(a) shows the temperature dependent electron mobility in silicon computed with and without the quadrupole term. Including the quadrupole interaction reduces the computed mobility by approximately 5 -10% due to the increased e -ph coupling strength and scattering rates. For example, the computed mobility at 300 K is 1390 cm 2 / Vs when including the quadrupole interaction versus a value of 1473 cm 2 / Vs with the conventional interpolation approach in which all e -ph interactions in silicon are treated as short-ranged. This discrepancy is due to the underestimation of the e -ph coupling strength for optical modes in the conventional approach, especially at small values of q as shown in Fig. 2. As a result, intravalley scattering due to optical modes is underestimated without the quadrupole term, leading to an artificially high mobility. Although we focus on silicon, we expect that these trends apply in general to nonpolar semiconductors because smallq optical e -ph coupling will consistently be underestimated without the quadrupole term. The long-range quadrupole e -ph interaction is thus surprisingly manifest in the transport properties of nonpolar materials.\n\nWe find an opposite trend in PbTiO 3 , in which including the quadrupole interaction increases the mobility by 10 -25% between 100 -400 K, as seen in Fig. 5(b). The quadrupole term gives a larger correction at lower temperatures, reaching values up to ∼ 25% at 100 K. This result is due to the dominant acoustic mode contribution at low temperatures together with the large quadrupole correction for acoustic modes in piezoelectric materials.\n\nAt higher temperatures, where optical mode scattering is dominant and acoustic scattering less important, the quadrupole contribution is smaller, only about 10% at 400 K. Due to differences in the quadrupole interaction for different phonon modes and to varying mode contributions to the mobility as a function of temperature, including the quadrupole term corrects the temperature dependence of the mobility [29] and is essential in piezoelectric materials.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.957</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2312-00577v1::c0034&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2312.00577v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Phonon-Limited Transport in 2D Materials: A Unified Approach for ab initio Mobility and Current Calculations&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2023</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;conclusion&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;This work explored the transport properties of selected TMDCs and bulk Silicon based on an ab initio description of the their electron and phonon dispersions and of the interaction between these particles. The developed methodology relies on a combination of first-principles DFT, MLWF, LBTE, and NEGF. Mobility calculations reveal that the obtained results align very well with the current literature, despite the myriad of factors that may impact the calculated quantities. The sensitivity of the TMDC mobility to factors such as pseudopotentials, exchange-correlation functionals, and phonon calculation method was highlighted. Hence, as a sanity check, the mobility of Silicon, a well characterized semiconductor, was computed and compared to experimental data. The excellent agreement between our calculations, measurements, and other computational studies validates our treatment of electron-phonon scattering. The latter was therefore employed in NEGF to construct electronphonon scattering self-energies going beyond the diagonal approximation, but restricted to Γ-point calculations. Here again, good agreement between LBTE and NEGF indicates that the most important features of electronphonon scattering are captured by our NEGF solver. As a consequence, ab initio device simulations of TMDCbased FETs incorporating the real mobility of these materials could be performed. Being able to precisely account for electron-phonon scattering in the investigation of TMDC devices is essential to shed light on their intrinsic transport properties. While the the accuracy achieved by our NEGF approach for mobility calculations and device simulations is promising, further enhancements are required to make it readily applicable to any system. Its computational efficiency should be improved so that it can treat larger devices and structures embedded within a dielectric environment [37]. Such an extension is key to directly account for surface optical phonon scattering. Significant speedups might be possible by applying the mode-space approximation [102] and by projecting the electron-phonon scattering self-energies into this basis. Additionally, the possibility to go beyond the diagonal approximation for scattering self-energies can now be used to treat other mechanisms as well, for example (charged) impurity scattering, surface roughens, or alloy disorder. The inclusion of non-diagonal scattering entries ensures a more detailed and accurate description of carrier interactions with their environment.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.953</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1810-10680v1::c0011&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1810.10680v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Thermoelectric transport properties of silicon: Towards an ab initio approach&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2018</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;conclusion&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;In conclusion, we have combined the Boltzmann transport equation with from first principles calculations of the electronic band structure and of the electron-phonon coupling constants for the intervalley scattering in silicon. This approach is developed to improve the calculation accuracy beyond the relaxation time approximation for the determination of thermoelectric coefficients of semiconductors. The computed electronic mobility and the Seebeck coefficient at room temperature have been compared to experimental data. Good quantitative agreement has been obtained. Furthermore, temperature and doping effects on thermoelectric coefficients have been investigated in a systematic way, and provide predictive data.\n\nFIG. 4. (Color-online) Thermoelectric properties of n -doped Si versus carrier concentration N at four different values of the temperature. Panel a: electronic mobility; Panel b: electrical conductivity (on a logarithmic scale); Panel c: Seebeck coefficient or thermal power. Panel d: electronic contribution to the thermal conductivity.\n\n&lt;!-- image --&gt;&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.951</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1807-02732v1::c0002&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1807.02732v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Simultaneously high electron and hole mobilities in cubic boron-V compounds: BP, BAs and BSb&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2018</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Carrier mobility is key to the performance of modern electronic devices such as diodes, transistors, photovoltaic cells, and thermoelectric modules [1]. After Bloch&#x27;s [2] pioneering study of the interaction between electrons and lattice vibrations, it was soon realized that in common metals and semiconductors, electrons are predominantly scattered by phonons [3]. To describe the coupling between electrons and long-wavelength acoustic phonons, Bardeen and Shockley [4] introduced the concept of deformation potential, through which the energy offset at the electronic band edge is related to the lattice strain caused by in-phase atomic displacement. In non-polar semiconductors, the acoustic-deformation-potential scattering often dominates the electron-phonon interaction. Fröhlich [5] illustrated that the macroscopic polarization field generated by the out-of-phase vibration (longitudinal-optical (LO) phonon) in electric dipoles tends to strongly couple with electrons. This is called the polar-optical-phonon scattering, and acts as one significant scattering channel to electrons in polar crystals. In addition to these two types of electron-phonon interactions, there are two more scattering mechanisms: opticaldeformation-potential scattering, an analogy of acoustic-deformation-potential scattering to transverse-optical (TO) phonons first investigated by Herring et al. [6]; and piezoelectric scattering, an analogy of polar-optical-phonon scattering to longitudinal-acoustic (LA) phonons first investigated by Meijer et al. [7]. Based on the aforementioned phenomenological pictures, electron-phonon coupling matrices can be derived as explicit, semi-empirical formulae, and the electron scattering rates can thus be evaluated using Fermi&#x27;s golden rule [8]. Such calculations have been performed by Rode et al. in calculating the electron mobility of IV [9], III-V [10,11] and II-VI [12] group semiconductors, by solving the Boltzmann transport equation (BTE). In addition, associated with use of Monte Carlo technique, Fischetti and Laux investigate the electron mobilities in different types of materials such as Si, GaAs and SiGe alloys [13-15]. The recent development of density-functional perturbation theory (DFPT) [16] has opened a new route to investigating electron-phonon interactions within the first-principles framework. In addition, the Wannier interpolation scheme [17,18] has enabled electron transport studies through a mode-by-mode analysis on a very fine k -mesh, based on first-principles inputs. As a result of these advancements, computation of transport properties by combining firstprinciples coupling matrices with BTE becomes practical when momentum space can be near continuously sampled. Carrier transport has thus been studied in a series of benchmark materials. For silicon, Restrepo et al. [19] initially carried out the first-principles calculation for the electron mobility. Qiu et al. [20] then presented carrier mobility and mean-free-path (MFP) spectra at different carrier concentrations and temperatures. The electron-phonon interactions as well as the transport properties of two-dimensional materials such as graphene [21], silicene [22], phosphorene [23], and transition metal dichalcogenides [24] were also presented. Very recently, this framework was extended to study carrier mobility in the strongly&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.94</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1808-10808v2::c0039&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1808.10808v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Mobility of 2D materials from first principles in an accurate and automated framework&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2018</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;076804 (2005).](http://dx.doi.org/10.1103/PhysRevLett.95.076804) - 31 J. R. Yates, X. Wang, D. Vanderbilt, and I. Souza, Spectral and Fermi surface properties from Wannier interpolation , Physical Review B 75 , 195121 (2007). - 32 F. Giustino, M. L. Cohen, and S. G. Louie, Electronphonon interaction using Wannier functions , Phys. Rev. B 76 , 165108 (2007). - 33 M. Calandra, G. Profeta, and F. Mauri, Adiabatic and nonadiabatic phonon dispersion in a Wannier function approach , Phys. Rev. B 82 , 165111 (2010). - 34 N. Marzari, A. A. Mostofi, J. R. Yates, I. Souza, and D. Vanderbilt, Maximally localized Wannier functions: Theory and applications , Rev. Mod. Phys. 84 , 1419 (2012). - [35 S. Ponc´ e, E. Margine, C. Verdi, and F. Giustino, EPW: Electron-phonon coupling, transport and superconducting properties using maximally localized Wannier functions , Computer Physics Communications 209 , 116 (2016).](http://dx.doi.org/10.1016/J.CPC.2016.07.028) - [36 J. Sjakste, N. Vast, M. Calandra, and F. Mauri, Wannier interpolation of the electron-phonon matrix elements in polar semiconductors: Polar-optical coupling in GaAs , Phys. Rev. B 92 , 054307 (2015).](http://dx.doi.org/10.1103/PhysRevB.92.054307) - 37 C. Verdi and F. Giustino, Fr¨ ohlich Electron-Phonon Vertex from First Principles , Phys. Rev. Lett. 115 , 176401 (2015). - [38 S. Y. Savrasov and D. Y. Savrasov, Electron-phonon interactions and related physical properties of metals from linear-response theory , Phys. Rev. B 54 , 16487 (1996).](http://dx.doi.org/10.1103/PhysRevB.54.16487) - 39 O. D. Restrepo, K. Varga, and S. T. Pantelides, Firstprinciples calculations of electron mobilities in silicon: Phonon and Coulomb scattering , Applied Physics Letters 94 , 212103 (2009). - 40 R. S. Shishir and D. K. Ferry, Intrinsic mobility in graphene. , Journal of physics. Condensed matter : an Institute of Physics journal 21 , 232204 (2009). - 41 K. M. Borysenko, J. T. Mullen, E. A. Barry, S. Paul, Y. G. Semenov, J. M. Zavada, M. Buongiorno Nardelli, and K. W. Kim, First-principles analysis of electron-phonon interactions in graphene , Physical Review B 81 , 121412 (2010). - 42 Z. Jin, X. Li, J. T. Mullen, and K. W. Kim, Intrinsic transport properties of electrons and holes in monolayer transition-metal dichalcogenides , Physical Review B 90 , 045422 (2014). - 43 O. D. Restrepo, K. E. Krymowski, J. Goldberger, and W. Windl, A first principles method to simulate electron mobilities in 2D materials , New Journal of Physics 16 (2014). - 44 C.-H. Park, N. Bonini, T. Sohier, G. Samsonidze, B. Kozinsky, M. Calandra, F. Mauri, and N. Marzari, Electron-Phonon Interactions and the Intrinsic Electrical Resistivity of Graphene. , Nano letters 14 , 1113 (2014). - 45 Z. Jin, J. T. Mullen, and K. W. Kim, Highly anisotropic electronic transport properties of monolayer and bilayer phosphorene from first principles , Applied&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.938</span>
+  }
+]</pre></div>
+</div>
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 query_materials_project
+    <span class="tool-id">toolu_013ntqiEgKeQQqBfEJRfPvw8</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;material_id&quot;</span>: <span class="js">&quot;mp-149&quot;</span>,
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;space_group&quot;</span>: <span class="js">&quot;Fd-3m&quot;</span>,
+  <span class="jk">&quot;band_gap_eV&quot;</span>: <span class="jn">0.6102999999999996</span>,
+  <span class="jk">&quot;is_magnetic&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;magnetic_ordering&quot;</span>: <span class="js">&quot;Unknown&quot;</span>,
+  <span class="jk">&quot;total_magnetization_uB&quot;</span>: <span class="jn">0.0</span>,
+  <span class="jk">&quot;energy_above_hull_eV_per_atom&quot;</span>: <span class="jn">0.0</span>,
+  <span class="jk">&quot;formation_energy_eV_per_atom&quot;</span>: <span class="jn">0.0</span>,
+  <span class="jk">&quot;nsites&quot;</span>: <span class="jn">2</span>,
+  <span class="jk">&quot;density_g_cm3&quot;</span>: <span class="jn">2.3128002565764314</span>
+}</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 1</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">I&#x27;ve gathered key literature and MP data. Now let me search for more specific Perturbo/Si workflow details, and simultaneously run the DFT calculation for Si.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (2)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;literature_search
+    <span class="tool-id">toolu_01KSjS5QnjpUYc1KuUV3Q4CT</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;query&quot;</span>: <span class="js">&quot;Perturbo electron-phonon ab initio transport silicon Wannier interpolation&quot;</span>,
+  <span class="jk">&quot;top_k&quot;</span>: <span class="jn">5</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;run_dft
+    <span class="tool-id">toolu_01X4ew2tktDKGVf18JgV6Hnk</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;kgrid&quot;</span>: [
+    <span class="jn">8</span>,
+    <span class="jn">8</span>,
+    <span class="jn">8</span>
+  ],
+  <span class="jk">&quot;ecutwfc&quot;</span>: <span class="jn">40.0</span>,
+  <span class="jk">&quot;nspin&quot;</span>: <span class="jn">1</span>,
+  <span class="jk">&quot;is_metal&quot;</span>: <span class="jb">false</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (2)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 literature_search
+    <span class="tool-id">toolu_01KSjS5QnjpUYc1KuUV3Q4CT</span>
+  </div>
+  <div class="tool-body"><pre class="json">[
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2002-02045v1::c0001&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2002.02045v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Perturbo: a software package for ab initio electron-phonon interactions, charge transport and ultrafast dynamics&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2020</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;abstract&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Perturbo is a software package for first-principles calculations of charge transport and ultrafast carrier dynamics in materials. The current version focuses on electron-phonon interactions and can compute phonon-limited transport properties such as the conductivity, carrier mobility and Seebeck coefficient. It can also simulate the ultrafast nonequilibrium electron dynamics in the presence of electron-phonon scattering. Perturbo uses results from density functional theory and density functional perturbation theory calculations as input, and employs Wannier interpolation to reduce the computational cost. It supports norm-conserving and ultrasoft pseudopotentials, spin-orbit coupling, and polar electron-phonon corrections for bulk and 2D materials. Hybrid MPI plus OpenMP parallelization is implemented to enable efficient calculations on large systems (up to at least 50 atoms) using high-performance computing. Taken together, Perturbo provides efficient and broadly applicable ab initio tools to investigate electron-phonon interactions and carrier dynamics quantitatively in metals, semiconductors, insulators, and 2D materials.\n\nKeywords: Charge transport, Ultrafast dynamics, Electron-phonon interactions, Wannier functions&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.982</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2312-10769v2::c0001&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2312.10769v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;The Wannier Function Software Ecosystem for Materials Simulations&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2023</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;introduction&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;engines and post-processing packages. We focus on some of the key properties and capabilities that are empowered by such ecosystem-from band interpolations and large-scale simulations to electronic transport, Berryology, topology, electron-phonon couplings, dynamical mean-field theory, embedding, and Koopmans functionals-concluding with the current status of interoperability and automation. The review aims at highlighting basic theory and concepts behind codes, providing relevant pointers to more in-depth references. It also elucidates the relationships and connections between codes and, where relevant, the different motivations and objectives behind their development strategies. Finally, we provide an outlook on future developments, and comment on the goals of biodiversity and sustainability for the whole software ecosystem. | Contents | Contents | Contents | 2. Accuracy and convergence | 12 | |---------------------|------------------------------------------------------|---------------------|-----------------------------------------------------------|------| | I. | Introduction | 2 | | | | A. | Ab initio electronic structure and Wannier functions | 3 | III. The Wannier ecosystem: theory and software packages | 17 | | | | | A. Development of widely available Wannier engines | 17 | | II. | Wannier functions fundamentals | 4 | B. The concept of a Wannier function software ecosystem | 18 | | A. | Maximally localized Wannier functions | 4 | C. Wannier interpolation and tight-binding models | 20 | | | 1. Isolated composite groups of bands | 5 | Band interpolation | 20 | | | 2. Entangled bands | 6 | 1. | 21 | | | 3. The projection method | 9 | 2. Band derivatives and Boltzmann transport operator | | | B. | Major applications of Wannier functions | 9 | 3. Interpolation of a generic lattice-periodic | 22 | | C. | Wannier functions for the practitioner | 12 | 4. Wannier function perturbation theory | 23 | | | 1. The spread functional in reciprocal space | 12 | 5. Porting Wannier Hamiltonians to TB codes | 23 | | | | | 6. Wannier interpolation beyond density-functional theory | 24 | | | | | D. Ballistic transport and nanostructures | 26 | | | | | E. Berryology | 28 | | ∗ amarrazz@sissa.it | ∗ amarrazz@sissa.it | ∗ amarrazz@sissa.it | | | 1. Motivation 28 | | 2. Wannier interpolation of the interband Berry connection | 29 | |-----|--------------------------------------------------------------|------| | | 3. Other Berry-type quantities | 30 | | F. | Topological invariants and related properties | 30 | | G. | Electron-phonon interactions | 34 | | | 1. Methodology | 34 | | | 2. Codes | 36 | | H. | Beyond DFT with localized orbitals | 37 | | | 1. Dynamical mean-field theory and embedding | 38 | | | 2. Koopmans functionals |&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.903</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2604-02576v2::c0007&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2604.02576v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Meta-optimization of maximally-localized Wannier functions&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2026</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;As a second application, Fig. 3 demonstrates how the present method significantly accelerates carrier-mobility calculations in semiconductors based on the ab initio Boltzmann transport equation ( ai BTE). The acceleration is achieved by using very small grids for the coarse BZ, and very few MLWFs, without sacrificing accuracy. It is well-known that the use of MLWFs drastically accelerates calculations of electron-phonon interactions via Wannier-Fourier interpolation of the electron-phonon matrix elements from a coarse BZ grid to an ultrafine grid. 12 The advantage of this method is that costly DFPT calculations are performed only on the coarse grid. However, even when employing Wannier-Fourier interpolation, ai BTE calculations carry two bottlenecks: (i) the interpolation of electron-phonon coupling matrix elements on ultradense BZ grids, and (ii) the computation of the resulting carrier scattering rates. WannierFourier interpolation of the electron-phonon matrix elements has a complexity scaling as O ( N 2 c ) , where N c represents the size of the coarse BZ grid. For a coarse BZ grid with N points in each direction, this leads to an overall scaling of O ( N 6 ) for 3D materials. In addition to time complexity, the memory footprint is also substantial. The electron-phonon matrix elements in the Wannier representation form a five-dimensional array whose size scales as N 2 c and N 2 b ( N b is the number of Wannier functions). Consequently, reductions in N c and N b simultaneously decrease computational time and memory requirements. For example, a four-fold reduction in N c theoretically yields a 4096 -fold speedup in transport calculations, while also significantly reducing storage requirements. Similarly, the computation of carrier scattering rates scales as O ( N 2 b ) ; thus, a five-fold reduction in N b can achieve an additional 25 -fold speedup. A detailed analysis of the scaling is provided in the Methods Section. We demonstrate these accelerations in Fig. 2(a),(b) using silicon and monolayer MoS 2 . For silicon, we can solve the ai BTE using a much smaller coarse BZ grid with 4 × 4 × 4 points, achieving a 3600-fold speedup compared to the standard 16 × 16 × 16 grid used in previous work, 34 with only a 8% error [Fig. 3(c)]. Similarly, for MoS 2 , we can reduce the number of required MLWFs from 10 to 2 (see Supplementary Figure 4), achieving a 45-fold speedup as compared to previous work, 41 with an error as low as 3% [Fig. 3(d)]. The ability of the present method to achieve such a significant data compression is rationalized in Supplementary Figure 7 via a singular value decomposition of the matrix elements. 42 As a result of the speedup enabled by meta-optimized&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.889</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2003-13782v1::c0008&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2003.13782v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Long-range quadrupole electron-phonon interaction from first principles&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2020</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;methods&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;We investigate the effect of the quadrupole e -ph interaction in silicon, a nonpolar semiconductor, and tetragonal PbTiO 3 , a polar piezoelectric material. Calculations on GaN are shown in the companion work [29]. The ground state and band structure are obtained using DFT in the local density approximation with a plane-wave basis using the Quantum ESPRESSO code [30]. Kinetic energy cutoffs of 40 Ry for silicon and 76 Ry for PbTiO 3 are employed, together with scalar-relativistic normconserving pseudopotentials from Pseudo Dojo [31]. The calculations employ lattice constants of 10.102 bohr for silicon and 7.275 bohr (with aspect ratio c/a = 1.046) for PbTiO 3 . We use the dynamical quadrupole tensors computed in Ref. 21. The phonon dispersions and e -ph perturbation potentials on coarse q -point grids are computed with DFPT [15]. We employ the perturbo code [9] to compute the e -ph matrix elements on coarse Brillouin zone grids with 10 × 10 × 10 k - and q -points for silicon and 8 × 8 × 8 k - and q -points for PbTiO 3 . The Wannier functions are computed with the Wannier90 code [28] and employed in perturbo [9] to interpolate the short-range e -ph matrix elements. We compute the scattering rates and electron mobility using the perturbo code [9]. Briefly, the band- and k -dependent e -ph scattering rate Γ n k is obtained as &lt;!-- formula-not-decoded --&gt; where ε n k and ℏ ω ν q are the electron and phonon energies, respectively, and f n k and N ν q the corresponding temperature-dependent occupations. The scattering rate can be further divided into the long-range part [4], Γ L n k , by replacing | g | 2 in Eq. (11) with ∣ ∣ g L ∣ ∣ 2 . The carrier mobility is computed using µ = σ/ ( n c e ), where σ is the electrical conductivity and n c is the carrier concentration. FIG. 2. Mode-resolved e -ph coupling strength [see Eq. (10)] in silicon, computed using the lowest valence band. The electron momentum k is fixed at the Γ point and the phonon wave-vector q is varied along high-symmetry lines in the Brillouin zone. Benchmark results from DFPT (black circles) are compared with Wannier interpolation with the quadrupole e -ph interaction included (orange line) or neglected (blue line). The coarse-grid q -points are indicated with vertical lines. &lt;!-- image --&gt; The electrical conductivity σ is computed within the relaxation time approximation of the Boltzmann transport equation [9, 32]: &lt;!-- formula-not-decoded --&gt; where Σ αβ ( E,T ) is the transport distribution function at energy E , &lt;!-- formula-not-decoded --&gt; which is computed in perturbo using the&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.883</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2302-08085v1::c0002&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2302.08085v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Electron-phonon physics from first principles using the EPW code&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2023</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;introduction&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The coupling between electrons and phonons is one of the most intensively studied fermionboson interactions in condensed matter physics. It is responsible for a number of physical phenomena in solids such as conventional superconductivity, temperature-dependent resistivity in metals and mobility in semiconductors, the formation of polarons, and phononassisted optical processes, to name a few [1, 2]. Predictive non-empirical calculations of electron-phonon interactions play an essential role in elucidating a variety of materials properties and their temperature dependence. During the past three decades, first-principles calculations of electron-phonon interactions have been made possible by the development of density functional theory (DFT) [3, 4] and density-functional perturbation theory (DFPT) [5-7]. However, the computational cost of these calculations is high, as they involve the evaluation of Brillouin zone integrals which typically require a very fine sampling of the crystal momenta of electrons and phonons. For instance, in DFPT calculations, every single phonon wavevector and vibrational mode requires the solution of Sternheimer-type equations that carry a computational complexity comparable to a DFT total energy calculation [8]. As a result, computing properties relating to the electron-phonon interaction usually entails a computational workload that is orders of magnitude more costly than standard DFT calculations, thus rendering direct ab initio calculations of these quantities computationally challenging. Several methods have been proposed to address this challenge [1]. Among those, one of the authors proposed to combine DFPT with maximally-localized Wannier functions (MLWFs) [9] to perform a physics-based interpolation via a generalized Fourier transformation [10]. This method exploits the spatial localization of the electron-phonon matrix elements in the Wannier representation, and enables efficient calculations of electron-phonon matrix elements on ultra-dense momentum grids while retaining the accuracy of DFPT. The EPW code builds upon this methodology to compute a number of properties relating to electron-phonon interactions and temperature-dependent materials properties. EPW is the first open-source ab initio software devoted to electron-phonon interactions, and has been actively developed for over 16 years. It was publicly released in 2010 under a GNU General Public License (GPL) [11], and is being distributed within the Quantum ESPRESSO materials simulation suite [12] since 2016. In addition to EPW , several software projects have been developed in recent years to address electron-phonon interactions, including: Perturbo [13], elphbolt [14], Phoebe [15], and EPIq [16]. All these packages rely on the same interpolation methodology employed in EPW [10]. Two prior manuscripts [17, 18] describe the status of the EPW code until 2016. This manuscript aims to describe progress on the code that has occurred since 2016 as well as ongoing efforts, leading to the EPW v6 release. New functionalities involve: a magnetotransport module for the calculation of the conductivity in metals as well as the drift and Hall mobility&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.862</span>
+  }
+]</pre></div>
+</div>
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 run_dft
+    <span class="tool-id">toolu_01X4ew2tktDKGVf18JgV6Hnk</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;converged&quot;</span>: <span class="jb">true</span>,
+  <span class="jk">&quot;total_energy_eV&quot;</span>: <span class="jn">-231.97623251538502</span>,
+  <span class="jk">&quot;total_magnetization&quot;</span>: <span class="jb">null</span>,
+  <span class="jk">&quot;absolute_magnetization&quot;</span>: <span class="jb">null</span>,
+  <span class="jk">&quot;homo_eV&quot;</span>: <span class="jn">5.9623</span>,
+  <span class="jk">&quot;lumo_eV&quot;</span>: <span class="jn">6.4996</span>,
+  <span class="jk">&quot;band_gap_eV&quot;</span>: <span class="jn">0.5373000000000001</span>,
+  <span class="jk">&quot;total_energy_eV_per_atom&quot;</span>: <span class="jn">-115.98811625769251</span>,
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;kgrid&quot;</span>: [
+    <span class="jn">8</span>,
+    <span class="jn">8</span>,
+    <span class="jn">8</span>
+  ],
+  <span class="jk">&quot;ecutwfc&quot;</span>: <span class="jn">40.0</span>,
+  <span class="jk">&quot;nspin&quot;</span>: <span class="jn">1</span>,
+  <span class="jk">&quot;magnetic_moments&quot;</span>: <span class="jb">null</span>,
+  <span class="jk">&quot;is_metal&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;monolayer&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/dft_runs/Si_337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;cache_key&quot;</span>: <span class="js">&quot;337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;dft_status&quot;</span>: <span class="js">&quot;cached&quot;</span>,
+  <span class="jk">&quot;band_info&quot;</span>: {
+    <span class="jk">&quot;nelec&quot;</span>: <span class="jn">8.0</span>,
+    <span class="jk">&quot;nbnd_scf&quot;</span>: <span class="jn">6</span>,
+    <span class="jk">&quot;num_atomic_wfc&quot;</span>: <span class="jn">8</span>,
+    <span class="jk">&quot;lsda&quot;</span>: <span class="jb">false</span>,
+    <span class="jk">&quot;elements&quot;</span>: [
+      <span class="js">&quot;Si&quot;</span>
+    ],
+    <span class="jk">&quot;n_atoms&quot;</span>: <span class="jn">2</span>,
+    <span class="jk">&quot;fermi_energy_eV&quot;</span>: <span class="jn">5.962345383266823</span>,
+    <span class="jk">&quot;highest_occupied_eV&quot;</span>: <span class="jn">5.962345383266823</span>,
+    <span class="jk">&quot;lowest_unoccupied_eV&quot;</span>: <span class="jn">6.499578209662337</span>
+  }
+}</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 2</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">DFT converged well. Now let me reason about Wannier90 settings and launch both Wannier90 and the phonon calculation in parallel.
+
+**Reasoning for Wannier90 parameters:**
+- `nelec = 8`, so **4 occupied bands** (Si has sp³ bonding). `nbnd_scf = 6`.
+- Si is a classic sp³ semiconductor; the valence manifold is 4 sp³ bands (s+px+py+pz on 2 atoms = 8 WFs), so `num_wann = 8`, `projections = [&#x27;Si:sp3&#x27;]`.
+- `num_atomic_wfc = 8`, add ~6 empty bands for disentanglement → `nbnd = 14`.
+- `dis_froz_max ≈ E_F + 1.5 eV = 5.96 + 1.5 ≈ 7.46 eV` (frozen in the occupied bands).
+- `dis_win_max ≈ E_F + 10 eV = 5.96 + 10 ≈ 16 eV` (must accommodate all 8 WFs at every k-point).
+- No semicore bands to exclude.
+- For the phonon grid: SCF uses [8,8,8], so ph_qgrid = [4,4,4] satisfies the commensurate requirement (8 is a multiple of 4), and nscf_kgrid = [8,8,1] → nscf needs to be a multiple of [4,4,4] too (8 is a multiple of 4 ✓).</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (2)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;run_wannier90
+    <span class="tool-id">toolu_011DvwmjeS3kFJEpyd3A3X8h</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;nbnd&quot;</span>: <span class="jn">14</span>,
+  <span class="jk">&quot;num_wann&quot;</span>: <span class="jn">8</span>,
+  <span class="jk">&quot;projections&quot;</span>: [
+    <span class="js">&quot;Si:sp3&quot;</span>
+  ],
+  <span class="jk">&quot;parent_scf_cache_key&quot;</span>: <span class="js">&quot;337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;nscf_kgrid&quot;</span>: [
+    <span class="jn">8</span>,
+    <span class="jn">8</span>,
+    <span class="jn">8</span>
+  ],
+  <span class="jk">&quot;dis_froz_max&quot;</span>: <span class="jn">7.46</span>,
+  <span class="jk">&quot;dis_win_max&quot;</span>: <span class="jn">16.0</span>,
+  <span class="jk">&quot;spin_component&quot;</span>: <span class="js">&quot;none&quot;</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;create_ph_save
+    <span class="tool-id">toolu_01QH7gQsXN9DjYtSRbwx63Zn</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;parent_scf_cache_key&quot;</span>: <span class="js">&quot;337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;ph_qgrid&quot;</span>: [
+    <span class="jn">4</span>,
+    <span class="jn">4</span>,
+    <span class="jn">4</span>
+  ]
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (2)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 run_wannier90
+    <span class="tool-id">toolu_011DvwmjeS3kFJEpyd3A3X8h</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;status&quot;</span>: <span class="js">&quot;done&quot;</span>,
+  <span class="jk">&quot;label&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;scf_cache_key&quot;</span>: <span class="js">&quot;337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;scf_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/dft_runs/Si_337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;nscf_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/w90_runs/Si_337ad9308727dc5f_nscf&quot;</span>,
+  <span class="jk">&quot;wann_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/w90_runs/Si_337ad9308727dc5f_wann&quot;</span>,
+  <span class="jk">&quot;seed&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;win_file&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/w90_runs/Si_337ad9308727dc5f_wann/Si.win&quot;</span>,
+  <span class="jk">&quot;wout_file&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/w90_runs/Si_337ad9308727dc5f_wann/Si.wout&quot;</span>,
+  <span class="jk">&quot;hr_file&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/w90_runs/Si_337ad9308727dc5f_wann/Si_hr.dat&quot;</span>,
+  <span class="jk">&quot;nbnd&quot;</span>: <span class="jn">14</span>,
+  <span class="jk">&quot;num_bands&quot;</span>: <span class="jn">14</span>,
+  <span class="jk">&quot;num_wann&quot;</span>: <span class="jn">8</span>,
+  <span class="jk">&quot;projections&quot;</span>: [
+    <span class="js">&quot;Si:sp3&quot;</span>
+  ],
+  <span class="jk">&quot;exclude_bands&quot;</span>: <span class="jb">null</span>,
+  <span class="jk">&quot;spin_component&quot;</span>: <span class="js">&quot;none&quot;</span>,
+  <span class="jk">&quot;nscf_kgrid&quot;</span>: [
+    <span class="jn">8</span>,
+    <span class="jn">8</span>,
+    <span class="jn">8</span>
+  ],
+  <span class="jk">&quot;disentanglement_windows&quot;</span>: {
+    <span class="jk">&quot;dis_win_min&quot;</span>: <span class="jb">null</span>,
+    <span class="jk">&quot;dis_win_max&quot;</span>: <span class="jn">16.0</span>,
+    <span class="jk">&quot;dis_froz_min&quot;</span>: <span class="jb">null</span>,
+    <span class="jk">&quot;dis_froz_max&quot;</span>: <span class="jn">7.46</span>
+  },
+  <span class="jk">&quot;wannier90&quot;</span>: {
+    <span class="jk">&quot;omega_I&quot;</span>: <span class="jn">18.760083509</span>,
+    <span class="jk">&quot;omega_D&quot;</span>: <span class="jn">0.187085707</span>,
+    <span class="jk">&quot;omega_OD&quot;</span>: <span class="jn">3.618426043</span>,
+    <span class="jk">&quot;omega_total_Ang2&quot;</span>: <span class="jn">22.565595259</span>,
+    <span class="jk">&quot;dis_converged&quot;</span>: <span class="jb">true</span>,
+    <span class="jk">&quot;wann_converged&quot;</span>: <span class="jb">true</span>,
+    <span class="jk">&quot;wf_centres&quot;</span>: [
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">1</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">3.889193</span>,
+          <span class="jn">3.528374</span>,
+          <span class="jn">6.73626</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.82068486</span>
+      },
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">2</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">4.622966</span>,
+          <span class="jn">2.490595</span>,
+          <span class="jn">6.736226</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.82067961</span>
+      },
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">3</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">3.522253</span>,
+          <span class="jn">2.490646</span>,
+          <span class="jn">6.100742</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.82068375</span>
+      },
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">4</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">3.522264</span>,
+          <span class="jn">2.490612</span>,
+          <span class="jn">7.37173</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.82067651</span>
+      },
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">5</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">0.9225</span>,
+          <span class="jn">0.65231</span>,
+          <span class="jn">1.59781</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.82069773</span>
+      },
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">6</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">0.922512</span>,
+          <span class="jn">0.652276</span>,
+          <span class="jn">0.326822</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.82069912</span>
+      },
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">7</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">-0.178201</span>,
+          <span class="jn">0.652327</span>,
+          <span class="jn">0.962306</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.8206995</span>
+      },
+      {
+        <span class="jk">&quot;index&quot;</span>: <span class="jn">8</span>,
+        <span class="jk">&quot;centre_Ang&quot;</span>: [
+          <span class="jn">0.555572</span>,
+          <span class="jn">-0.385452</span>,
+          <span class="jn">0.962341</span>
+        ],
+        <span class="jk">&quot;spread_Ang2&quot;</span>: <span class="jn">2.82069978</span>
+      }
+    ],
+    <span class="jk">&quot;n_wf&quot;</span>: <span class="jn">8</span>,
+    <span class="jk">&quot;max_wf_spread_Ang2&quot;</span>: <span class="jn">2.82069978</span>,
+    <span class="jk">&quot;mean_wf_spread_Ang2&quot;</span>: <span class="jn">2.8206901075</span>
+  },
+  <span class="jk">&quot;band_info&quot;</span>: {
+    <span class="jk">&quot;nelec&quot;</span>: <span class="jn">8.0</span>,
+    <span class="jk">&quot;nbnd_scf&quot;</span>: <span class="jn">6</span>,
+    <span class="jk">&quot;num_atomic_wfc&quot;</span>: <span class="jn">8</span>,
+    <span class="jk">&quot;lsda&quot;</span>: <span class="jb">false</span>,
+    <span class="jk">&quot;elements&quot;</span>: [
+      <span class="js">&quot;Si&quot;</span>
+    ],
+    <span class="jk">&quot;n_atoms&quot;</span>: <span class="jn">2</span>,
+    <span class="jk">&quot;fermi_energy_eV&quot;</span>: <span class="jn">5.962345383266823</span>,
+    <span class="jk">&quot;highest_occupied_eV&quot;</span>: <span class="jn">5.962345383266823</span>,
+    <span class="jk">&quot;lowest_unoccupied_eV&quot;</span>: <span class="jn">6.499578209662337</span>
+  }
+}</pre></div>
+</div>
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 create_ph_save
+    <span class="tool-id">toolu_01QH7gQsXN9DjYtSRbwx63Zn</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;status&quot;</span>: <span class="js">&quot;done&quot;</span>,
+  <span class="jk">&quot;label&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;prefix&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;scf_cache_key&quot;</span>: <span class="js">&quot;337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;scf_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/dft_runs/Si_337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;scf_kgrid&quot;</span>: [
+    <span class="jn">8</span>,
+    <span class="jn">8</span>,
+    <span class="jn">8</span>
+  ],
+  <span class="jk">&quot;ph_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/ph_runs/Si_337ad9308727dc5f_q444_15ec138d_ph&quot;</span>,
+  <span class="jk">&quot;ph_out&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/ph_runs/Si_337ad9308727dc5f_q444_15ec138d_ph/ph.out&quot;</span>,
+  <span class="jk">&quot;ph_qgrid&quot;</span>: [
+    <span class="jn">4</span>,
+    <span class="jn">4</span>,
+    <span class="jn">4</span>
+  ],
+  <span class="jk">&quot;tr2_ph&quot;</span>: <span class="jn">1e-14</span>,
+  <span class="jk">&quot;epsil&quot;</span>: <span class="jb">true</span>,
+  <span class="jk">&quot;n_qpoints_irr&quot;</span>: <span class="jn">24</span>,
+  <span class="jk">&quot;has_imaginary_modes&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;imaginary_modes&quot;</span>: [],
+  <span class="jk">&quot;min_freq_cm1&quot;</span>: <span class="jn">94.27405826969677</span>,
+  <span class="jk">&quot;gamma_freqs_THz&quot;</span>: [
+    <span class="jn">-0.1204082277668332</span>,
+    <span class="jn">-0.1203168665342138</span>,
+    <span class="jn">-0.119633272664439</span>,
+    <span class="jn">14.99558722394068</span>,
+    <span class="jn">14.99560283953201</span>,
+    <span class="jn">14.99561166467568</span>
+  ],
+  <span class="jk">&quot;acoustic_tol_cm1&quot;</span>: <span class="jn">15.0</span>,
+  <span class="jk">&quot;save_dir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/ph_runs/Si_337ad9308727dc5f_q444_15ec138d_ph/save&quot;</span>,
+  <span class="jk">&quot;save_size_MB&quot;</span>: <span class="jn">62.9</span>,
+  <span class="jk">&quot;commensurability_note&quot;</span>: <span class="js">&quot;the nscf_kgrid passed to run_wannier90 must also be an integer multiple of ph_qgrid in every dimension (qe2pert requirement)&quot;</span>
+}</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 3</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">Both Wannier90 and the phonon calculation completed successfully. Now I can run the final qe2pert step to combine them into the electron-phonon database.
+
+Both prerequisites are complete — I will now combine them with qe2pert to produce the `Si_epr.h5` file.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;run_qe2pert
+    <span class="tool-id">toolu_01A2KA5bKjgw9vcvbduoB8PY</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;parent_scf_cache_key&quot;</span>: <span class="js">&quot;337ad9308727dc5f&quot;</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 run_qe2pert
+    <span class="tool-id">toolu_01A2KA5bKjgw9vcvbduoB8PY</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;status&quot;</span>: <span class="js">&quot;done&quot;</span>,
+  <span class="jk">&quot;label&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;prefix&quot;</span>: <span class="js">&quot;Si&quot;</span>,
+  <span class="jk">&quot;scf_cache_key&quot;</span>: <span class="js">&quot;337ad9308727dc5f&quot;</span>,
+  <span class="jk">&quot;workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/qe2pert_runs/Si_337ad9308727dc5f_q444_15ec138d_qe2pert&quot;</span>,
+  <span class="jk">&quot;epr_file&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/qe2pert_runs/Si_337ad9308727dc5f_q444_15ec138d_qe2pert/Si_epr.h5&quot;</span>,
+  <span class="jk">&quot;epr_size_MB&quot;</span>: <span class="jn">208.4</span>,
+  <span class="jk">&quot;nk_grid&quot;</span>: [
+    <span class="jn">8</span>,
+    <span class="jn">8</span>,
+    <span class="jn">8</span>
+  ],
+  <span class="jk">&quot;dft_band_min&quot;</span>: <span class="jn">1</span>,
+  <span class="jk">&quot;dft_band_max&quot;</span>: <span class="jn">14</span>,
+  <span class="jk">&quot;num_wann&quot;</span>: <span class="jn">8</span>,
+  <span class="jk">&quot;dis_win_min&quot;</span>: <span class="jb">null</span>,
+  <span class="jk">&quot;phdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/ph_runs/Si_337ad9308727dc5f_q444_15ec138d_ph/save&quot;</span>,
+  <span class="jk">&quot;spin_component&quot;</span>: <span class="js">&quot;none&quot;</span>,
+  <span class="jk">&quot;nscf_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/w90_runs/Si_337ad9308727dc5f_nscf&quot;</span>,
+  <span class="jk">&quot;wann_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/w90_runs/Si_337ad9308727dc5f_wann&quot;</span>,
+  <span class="jk">&quot;ph_workdir&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/ph_runs/Si_337ad9308727dc5f_q444_15ec138d_ph&quot;</span>,
+  <span class="jk">&quot;ph_qgrid&quot;</span>: [
+    <span class="jn">4</span>,
+    <span class="jn">4</span>,
+    <span class="jn">4</span>
+  ],
+  <span class="jk">&quot;qe2pert_in&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/qe2pert_runs/Si_337ad9308727dc5f_q444_15ec138d_qe2pert/qe2pert.in&quot;</span>,
+  <span class="jk">&quot;qe2pert_out&quot;</span>: <span class="js">&quot;/home/user/Projects/perturbot/data/qe2pert_runs/Si_337ad9308727dc5f_q444_15ec138d_qe2pert/qe2pert.out&quot;</span>,
+  <span class="jk">&quot;next_step_note&quot;</span>: <span class="js">&quot;Si_epr.h5 is the electron-phonon database consumed by perturbo.x&quot;</span>
+}</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 4</span>
+    <span class="stop-badge">end_turn</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">The `Si_epr.h5` file has been successfully produced. Here is the complete summary:
+
+---
+
+## 🔷 Silicon: Transport Properties Summary
+
+### Crystal &amp; Electronic Structure
+Silicon crystallizes in the **diamond cubic** structure (space group **Fd-3m**, mp-149), with 2 atoms per unit cell and a density of 2.31 g/cm³. It is a **non-magnetic** semiconductor with zero formation energy (ground state phase). Our DFT calculation gives an indirect band gap of **0.537 eV** (LDA/GGA underestimate; the Materials Project reports 0.610 eV), consistent with the well-known ~1.12 eV experimental gap.
+
+### Electron-Phonon Coupling Character
+Silicon is a **non-polar covalent semiconductor**, so its electron-phonon coupling is dominated by **short-range acoustic deformation-potential scattering** and **optical deformation-potential scattering** — there is no macroscopic polar (Fröhlich) coupling [chunk: 2509-10192v1::c0022]. At small phonon wavevectors **q**, conventional Wannier interpolation slightly underestimates the optical e-ph coupling in Si; a long-range **quadrupole correction** reduces the computed room-temperature mobility by ~5–10%, from ~1473 to ~1390 cm²/Vs [chunk: 2003-13782v1::c0015].
+
+### Carrier Mobility
+- **Experimental phonon-limited electron mobility at 300 K:** ~1300–1450 cm²/Vs [chunk: 2312-00577v1::c0026].
+- **First-principles (GGA, no SOC, no relaxation):** ~1452–1457 cm²/Vs, in excellent agreement with experiment [chunk: 2312-00577v1::c0026].
+- **Best theoretical estimate (with quadrupole e-ph):** ~1390 cm²/Vs [chunk: 2003-13782v1::c0015].
+- The Si electron and hole mobilities show **relatively symmetric** e-ph coupling at both band edges, unlike Ge which shows pronounced asymmetry [chunk: 2509-10192v1::c0022].
+- **Intervalley scattering** plays a central role in both the mobility and thermoelectric Seebeck coefficient; the Boltzmann transport equation with full first-principles e-ph coupling (beyond RTA) is needed for quantitative accuracy [chunk: 1810-10680v1::c0011].
+
+### Temperature &amp; Doping Dependence
+Increasing carrier concentration broadens spectral quasiparticle peaks, compresses the QP-satellite separation, and reduces mobility. These effects are **more pronounced in Si than in Ge** due to Si&#x27;s stronger e-ph coupling [chunk: 2509-10192v1::c0022]. The Seebeck coefficient and electrical conductivity vary strongly with both temperature and doping [chunk: 1810-10680v1::c0011].
+
+### Perturbo Workflow
+Perturbo uses **DFPT + Wannier interpolation** (via `qe2pert.x`) to efficiently evaluate e-ph matrix elements on ultra-dense Brillouin zone grids, enabling computation of conductivity, carrier mobility, and ultrafast dynamics [chunk: 2002-02045v1::c0001]. The Perturbo methodology for Si has been validated with 10×10×10 coarse BZ grids [chunk: 2003-13782v1::c0008].
+
+---
+
+## ✅ `Si_epr.h5` Database — Produced Successfully
+
+Here is a full log of the computational pipeline:
+
+| Step | Tool | Key Settings | Result |
+|------|------|-------------|--------|
+| **1. SCF DFT** | `run_dft` | k-grid [8,8,8], Ecut=40 Ry, nspin=1 | ✅ Converged, E = −231.98 eV, gap = 0.537 eV |
+| **2. Wannier90** | `run_wannier90` | `Si:sp3`, num_wann=8, nbnd=14, dis_froz_max=7.46 eV, dis_win_max=16.0 eV | ✅ Converged, Ω_total = 22.57 Å², Ω_I = 18.76 Å² |
+| **3. Phonons (DFPT)** | `create_ph_save` | q-grid [4,4,4] | ✅ Stable (no imaginary modes), min freq = 94.3 cm⁻¹ |
+| **4. qe2pert** | `run_qe2pert` | Combines W90 + phonons | ✅ **`Si_epr.h5` produced, 208.4 MB** |
+
+### Wannierization Quality
+- **8 sp³ Wannier functions** (4 Si–Si bond-centred pairs), all with essentially **identical spread ~2.82 Å²** — physically perfect for the tetrahedral Si lattice.
+- Disentanglement **converged** (`dis_converged = True`, `wann_converged = True`).
+- Ω_D = 0.187 Å² (near zero, excellent localization), Ω_OD = 3.62 Å².
+
+### Dynamical Stability
+- **No imaginary phonon modes** detected (`has_imaginary_modes = False`).
+- Minimum frequency: **94.3 cm⁻¹** (fully positive).
+- Γ-point: acoustic triplet at ~0 THz (as expected) + optical doublet at **~15.0 THz** (LO/TO degenerate at Γ for nonpolar Si ✓).
+
+### Deliverable
+&gt; **`/home/user/Projects/perturbot/data/qe2pert_runs/Si_337ad9308727dc5f_q444_15ec138d_qe2pert/Si_epr.h5`**
+&gt; File size: **208.4 MB**
+
+This HDF5 file is the complete electron-phonon database ready to be consumed by `perturbo.x` for computing Si&#x27;s phonon-limited mobility, scattering rates, and ultrafast carrier dynamics.</div>
+</div></div>
+</div>
+
+<div class="final-answer">
+  <div class="section-label">✅ Final Answer &nbsp;<span style="font-weight:400;color:var(--dim)">(end_turn)</span></div>
+  <div class="final-answer-text">The `Si_epr.h5` file has been successfully produced. Here is the complete summary:
+
+---
+
+## 🔷 Silicon: Transport Properties Summary
+
+### Crystal &amp; Electronic Structure
+Silicon crystallizes in the **diamond cubic** structure (space group **Fd-3m**, mp-149), with 2 atoms per unit cell and a density of 2.31 g/cm³. It is a **non-magnetic** semiconductor with zero formation energy (ground state phase). Our DFT calculation gives an indirect band gap of **0.537 eV** (LDA/GGA underestimate; the Materials Project reports 0.610 eV), consistent with the well-known ~1.12 eV experimental gap.
+
+### Electron-Phonon Coupling Character
+Silicon is a **non-polar covalent semiconductor**, so its electron-phonon coupling is dominated by **short-range acoustic deformation-potential scattering** and **optical deformation-potential scattering** — there is no macroscopic polar (Fröhlich) coupling [chunk: 2509-10192v1::c0022]. At small phonon wavevectors **q**, conventional Wannier interpolation slightly underestimates the optical e-ph coupling in Si; a long-range **quadrupole correction** reduces the computed room-temperature mobility by ~5–10%, from ~1473 to ~1390 cm²/Vs [chunk: 2003-13782v1::c0015].
+
+### Carrier Mobility
+- **Experimental phonon-limited electron mobility at 300 K:** ~1300–1450 cm²/Vs [chunk: 2312-00577v1::c0026].
+- **First-principles (GGA, no SOC, no relaxation):** ~1452–1457 cm²/Vs, in excellent agreement with experiment [chunk: 2312-00577v1::c0026].
+- **Best theoretical estimate (with quadrupole e-ph):** ~1390 cm²/Vs [chunk: 2003-13782v1::c0015].
+- The Si electron and hole mobilities show **relatively symmetric** e-ph coupling at both band edges, unlike Ge which shows pronounced asymmetry [chunk: 2509-10192v1::c0022].
+- **Intervalley scattering** plays a central role in both the mobility and thermoelectric Seebeck coefficient; the Boltzmann transport equation with full first-principles e-ph coupling (beyond RTA) is needed for quantitative accuracy [chunk: 1810-10680v1::c0011].
+
+### Temperature &amp; Doping Dependence
+Increasing carrier concentration broadens spectral quasiparticle peaks, compresses the QP-satellite separation, and reduces mobility. These effects are **more pronounced in Si than in Ge** due to Si&#x27;s stronger e-ph coupling [chunk: 2509-10192v1::c0022]. The Seebeck coefficient and electrical conductivity vary strongly with both temperature and doping [chunk: 1810-10680v1::c0011].
+
+### Perturbo Workflow
+Perturbo uses **DFPT + Wannier interpolation** (via `qe2pert.x`) to efficiently evaluate e-ph matrix elements on ultra-dense Brillouin zone grids, enabling computation of conductivity, carrier mobility, and ultrafast dynamics [chunk: 2002-02045v1::c0001]. The Perturbo methodology for Si has been validated with 10×10×10 coarse BZ grids [chunk: 2003-13782v1::c0008].
+
+---
+
+## ✅ `Si_epr.h5` Database — Produced Successfully
+
+Here is a full log of the computational pipeline:
+
+| Step | Tool | Key Settings | Result |
+|------|------|-------------|--------|
+| **1. SCF DFT** | `run_dft` | k-grid [8,8,8], Ecut=40 Ry, nspin=1 | ✅ Converged, E = −231.98 eV, gap = 0.537 eV |
+| **2. Wannier90** | `run_wannier90` | `Si:sp3`, num_wann=8, nbnd=14, dis_froz_max=7.46 eV, dis_win_max=16.0 eV | ✅ Converged, Ω_total = 22.57 Å², Ω_I = 18.76 Å² |
+| **3. Phonons (DFPT)** | `create_ph_save` | q-grid [4,4,4] | ✅ Stable (no imaginary modes), min freq = 94.3 cm⁻¹ |
+| **4. qe2pert** | `run_qe2pert` | Combines W90 + phonons | ✅ **`Si_epr.h5` produced, 208.4 MB** |
+
+### Wannierization Quality
+- **8 sp³ Wannier functions** (4 Si–Si bond-centred pairs), all with essentially **identical spread ~2.82 Å²** — physically perfect for the tetrahedral Si lattice.
+- Disentanglement **converged** (`dis_converged = True`, `wann_converged = True`).
+- Ω_D = 0.187 Å² (near zero, excellent localization), Ω_OD = 3.62 Å².
+
+### Dynamical Stability
+- **No imaginary phonon modes** detected (`has_imaginary_modes = False`).
+- Minimum frequency: **94.3 cm⁻¹** (fully positive).
+- Γ-point: acoustic triplet at ~0 THz (as expected) + optical doublet at **~15.0 THz** (LO/TO degenerate at Γ for nonpolar Si ✓).
+
+### Deliverable
+&gt; **`/home/user/Projects/perturbot/data/qe2pert_runs/Si_337ad9308727dc5f_q444_15ec138d_qe2pert/Si_epr.h5`**
+&gt; File size: **208.4 MB**
+
+This HDF5 file is the complete electron-phonon database ready to be consumed by `perturbo.x` for computing Si&#x27;s phonon-limited mobility, scattering rates, and ultrafast carrier dynamics.</div>
+</div>
+
+<div class="footer">
+  5 iteration(s) &nbsp;·&nbsp; cc2275fc &nbsp;·&nbsp; generated by trace_to_html.py
+</div>
+
+<script>
+  document.querySelectorAll('.step-header').forEach(h => {
+    h.addEventListener('click', () => h.closest('.step').classList.toggle('collapsed'));
+  });
+</script>
+</body>
+</html>

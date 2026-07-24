@@ -1,0 +1,7 @@
+{"id": "t1", "prompt": "what is the rate determining step in electrochemical carboxylation? Cite the literatures.", "expects_tool": "literature_search", "expected_substr": "chunk:"}
+{"id": "t2", "prompt": "Find papers about exciton-magnon coupling in CrSBr and summarize them. Cite by chunk_id.", "expects_tool": "literature_search", "expected_substr": "CrSBr"}
+// {"id": "t3", "prompt": "What is the band gap of monolayer CrBr3 from DFT? Cite a paper.", "expects_tool": "literature_search", "expected_substr": "chunk:"}
+// {"id": "t4", "prompt": "superconductivity critical temperature of CrSBr", "expects_tool": null, "expected_substr": "not"}
+// {"id": "t5", "prompt": "Compare the Curie temperatures of CrI3 and CrBr3 monolayers. Cite sources.", "expects_tool": "literature_search", "expected_substr": "chunk:"}
+// {"id": "t6", "prompt": "What computational method is most commonly used to calculate magnon dispersions in 2D magnets? Cite a paper.", "expects_tool": "literature_search", "expected_substr": "chunk:"}
+// {"id": "t7", "prompt": "What is the boiling point of water?", "expects_tool": null, "expected_substr": "100"}

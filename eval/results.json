@@ -1,0 +1,451 @@
+[
+  {
+    "id": "t1",
+    "completed": true,
+    "tools_used": [
+      "literature_search"
+    ],
+    "expected_tool_used": true,
+    "expected_substr_in_answer": true,
+    "n_steps": 2,
+    "wall_time_s": 30.28,
+    "pass": true,
+    "faithfulness_rate": 0.909,
+    "audit": {
+      "n_citations_total": 11,
+      "n_supported": 10,
+      "faithfulness_rate": 0.909,
+      "details": [
+        {
+          "claim": "Here is what each hit contributed:\n\n- **[chunk: 2103-13537v2::c0027]** \u2014 Most directly relevant: quantifies **magnetism-phonon coupling strength** in CrI\u2083 via Raman scattering, showing which phonon modes (*R\u2081\u2013R\u2084*) couple (\u2713) or decouple (\u2717) from specific magnetic orders depending on stacking (monoclinic vs.",
+          "chunk_id": "2103-13537v2::c0027",
+          "supported": true,
+          "reason": "The chunk directly presents Table S1 quantifying magnetism-phonon coupling strength between phonon modes (U1\u2013U4, corresponding to R1\u2013R4) and magnetic orders in monoclinic vs. rhombohedral stacking regions of CrI3, showing which modes couple (\u221a) or decouple (\u00d7) from specific magnetic orders."
+        },
+        {
+          "claim": "- **[chunk: 2210-15519v2::c0012]** \u2014 Relevant: provides material parameters for single-layer CrI\u2083 used in a cavity magnomechanics model, including the magnetoelastic coefficient *B\u2081 = 0.685 meV*, phonon resonance at ~25 MHz, and magnon/phonon decay rates (~10\u00b2 Hz and ~10\u2076 Hz at millikelvin temperatures).",
+          "chunk_id": "2210-15519v2::c0012",
+          "supported": true,
+          "reason": "The chunk explicitly states B\u2081 = 0.685 meV, phonon resonance \u03c9b = 25 MHz, and decay rates of ~10\u00b2 Hz (phonons) and ~10\u2076 Hz (magnons) at millikelvin temperatures for single-layer CrI\u2083 in a cavity magnomechanics context."
+        },
+        {
+          "claim": "- **[chunk: 2604-25588v1::c0013]** \u2014 Relevant context: discusses magnon-phonon coupling in suspended 2D vdW ferromagnets (primarily CrGeTe\u2083), noting single magnon-phonon coupling rates can reach **a few kHz** \u2014 orders of magnitude above YIG spheres \u2014 but focuses on CrGeTe\u2083, not CrI\u2083 directly.",
+          "chunk_id": "2604-25588v1::c0013",
+          "supported": true,
+          "reason": "The chunk explicitly states that coupling rates can reach 'up to a few kHz' in suspended 2D vdW ferromagnets, more than three orders of magnitude above YIG spheres, and that quantitative estimates are presented for CrGeTe\u2083, directly matching the claim's content."
+        },
+        {
+          "claim": "- **[chunk: 2301-11949v1::c0008]** \u2014 Off-topic for magnon-phonon coupling; discusses electron-phonon interaction at Yb\u00b3\u207a defects in CrI\u2083.",
+          "chunk_id": "2301-11949v1::c0008",
+          "supported": false,
+          "reason": "The chunk discusses electron-phonon interaction at Yb\u00b3\u207a defects in CrI\u2083 (not magnon-phonon coupling), which is exactly what the claim states, so the claim's characterization is accurate and the chunk is indeed off-topic for magnon-phonon coupling."
+        },
+        {
+          "claim": "- **[chunk: 2007-14379v3::c0009]** \u2014 Off-topic; discusses exchange interaction strengths and critical exponents in CrI\u2083, not magnon-phonon coupling.",
+          "chunk_id": "2007-14379v3::c0009",
+          "supported": true,
+          "reason": "The chunk directly discusses exchange interaction strengths and critical exponents in CrI\u2083 with different stackings, confirming the claim that it covers these topics rather than magnon-phonon coupling."
+        },
+        {
+          "claim": "The coupling is highly **mode- and stacking-selective**: in double-bilayer CrI\u2083, specific phonon modes (*R\u2081\u2013R\u2084*) couple or decouple from the magnetic order depending on whether the stacking is monoclinic or rhombohedral and on the out-of-plane spin configuration [chunk: 2103-13537v2::c0027].",
+          "chunk_id": "2103-13537v2::c0027",
+          "supported": true,
+          "reason": "The chunk explicitly presents Table S1 showing mode- and stacking-selective magnetism-phonon coupling (\u221a or \u00d7) for modes U1\u2013U4 (corresponding to R1\u2013R4) in both monoclinic and rhombohedral stacking regions of double-bilayer CrI3 across different out-of-plane spin configurations."
+        },
+        {
+          "claim": "Magnetoelastic Coupling Constant\nFor single-layer CrI\u2083, the magnetoelastic (magnon-phonon) coupling coefficient is estimated at:\n\n> **B\u2081 = 0.685 meV**\n\nwith phonon resonance frequencies on the order of ~25 MHz and magnon/phonon decay rates of ~10\u2076 Hz and ~10\u00b2 Hz, respectively, at millikelvin temperatures [chunk: 2210-15519v2::c0012].",
+          "chunk_id": "2210-15519v2::c0012",
+          "supported": true,
+          "reason": "The chunk explicitly states B\u2081 = 0.685 meV for single-layer CrI\u2083, phonon resonance frequency \u03c9_b = 25 MHz, and decay rates on the orders of 10\u00b2 Hz (phonons) and 10\u2076 Hz (magnons) at millikelvin temperatures."
+        },
+        {
+          "claim": "Comparison to Other Platforms\nFor reference, suspended 2D vdW ferromagnetic membranes (a class that includes CrI\u2083-like materials) can achieve single magnon-phonon coupling rates of **up to a few kHz** \u2014 more than **three orders of magnitude** higher than conventional platforms such as YIG spheres or CoFeB beams \u2014 primarily due to reduced dimensions enhancing zero-point fluctuations and bending-induced pre-strain [chunk: 2604-25588v1::c0013].",
+          "chunk_id": "2604-25588v1::c0013",
+          "supported": true,
+          "reason": "The chunk explicitly states that the single magnon-phonon coupling rate can reach values up to a few kHz, more than three orders of magnitude higher than YIG spheres and CoFeB beams, and attributes this to reduced dimensions increasing zero-point fluctuations and bending-induced pre-strain, directly matching all claims."
+        },
+        {
+          "claim": "### Key Citations\n| Finding | Citation |\n|---|---|\n| Mode-selective magnetism-phonon coupling in CrI\u2083 (Raman, stacking dependence) | [chunk: 2103-13537v2::c0027] |\n| Magnetoelastic coefficient B\u2081 = 0.685 meV for single-layer CrI\u2083 | [chunk: 2210-15519v2::c0012] |\n| Magnon-phonon coupling rates up to ~kHz in 2D vdW magnets | [chunk: 2604-25588v1::c0013] |",
+          "chunk_id": "2103-13537v2::c0027",
+          "supported": true,
+          "reason": "The chunk explicitly discusses mode-selective magnetism-phonon coupling in CrI\u2083, including stacking dependence (monoclinic vs. rhombohedral) and Raman scattering analysis of phonon modes coupled to magnetic order."
+        },
+        {
+          "claim": "### Key Citations\n| Finding | Citation |\n|---|---|\n| Mode-selective magnetism-phonon coupling in CrI\u2083 (Raman, stacking dependence) | [chunk: 2103-13537v2::c0027] |\n| Magnetoelastic coefficient B\u2081 = 0.685 meV for single-layer CrI\u2083 | [chunk: 2210-15519v2::c0012] |\n| Magnon-phonon coupling rates up to ~kHz in 2D vdW magnets | [chunk: 2604-25588v1::c0013] |",
+          "chunk_id": "2210-15519v2::c0012",
+          "supported": true,
+          "reason": "The chunk explicitly states B\u2081 = 0.685 meV as a typical parameter for single-layer CrI\u2083."
+        },
+        {
+          "claim": "### Key Citations\n| Finding | Citation |\n|---|---|\n| Mode-selective magnetism-phonon coupling in CrI\u2083 (Raman, stacking dependence) | [chunk: 2103-13537v2::c0027] |\n| Magnetoelastic coefficient B\u2081 = 0.685 meV for single-layer CrI\u2083 | [chunk: 2210-15519v2::c0012] |\n| Magnon-phonon coupling rates up to ~kHz in 2D vdW magnets | [chunk: 2604-25588v1::c0013] |",
+          "chunk_id": "2604-25588v1::c0013",
+          "supported": true,
+          "reason": "The chunk explicitly states that the single magnon-phonon coupling rate in 2D vdW magnets 'can reach values up to a few kHz,' directly supporting the claim of coupling rates up to ~kHz in 2D vdW magnets."
+        }
+      ]
+    }
+  },
+  {
+    "id": "t2",
+    "completed": true,
+    "tools_used": [
+      "literature_search",
+      "query_materials_project"
+    ],
+    "expected_tool_used": true,
+    "expected_substr_in_answer": true,
+    "n_steps": 3,
+    "wall_time_s": 45.47,
+    "pass": true,
+    "faithfulness_rate": 1.0,
+    "audit": {
+      "n_citations_total": 8,
+      "n_supported": 8,
+      "faithfulness_rate": 1.0,
+      "details": [
+        {
+          "claim": "Boltzmann Transport Theory of Magnon\u2013Exciton Drag (2025)\n**[chunk: 2512-05835v2::c0000]**\n\nIakovlev, Kamra & Glazov develop a **microscopic Boltzmann kinetic theory** of the magnon\u2013exciton *drag* effect in bilayer antiferromagnetic CrSBr.",
+          "chunk_id": "2512-05835v2::c0000",
+          "supported": true,
+          "reason": "The chunk explicitly states the authors develop a microscopic theory of magnon-exciton drag in bilayer antiferromagnetic CrSBr using the Boltzmann kinetic equation, directly confirming all elements of the claim."
+        },
+        {
+          "claim": "Tunable Exciton-Hybridized Magnon Interactions in a Layered Semiconductor (2022)\n**[chunk: 2209-13744v1::c0001]** **[chunk: 2209-13744v1::c0002]**\n\nThis paper experimentally demonstrates **precise, tunable control over coherent exciton\u2013magnon coupling** in CrSBr.",
+          "chunk_id": "2209-13744v1::c0001",
+          "supported": true,
+          "reason": "The abstract explicitly states 'we demonstrate precise control of coherent exciton-magnon interactions in the layered magnetic semiconductor CrSBr,' directly matching the claim."
+        },
+        {
+          "claim": "Tunable Exciton-Hybridized Magnon Interactions in a Layered Semiconductor (2022)\n**[chunk: 2209-13744v1::c0001]** **[chunk: 2209-13744v1::c0002]**\n\nThis paper experimentally demonstrates **precise, tunable control over coherent exciton\u2013magnon coupling** in CrSBr.",
+          "chunk_id": "2209-13744v1::c0002",
+          "supported": true,
+          "reason": "The chunk explicitly states the paper demonstrates control over coherent coupling between excitons and magnon modes in CrSBr via external magnetic fields and uniaxial strain, directly supporting the claim of tunable exciton-magnon coupling."
+        },
+        {
+          "claim": "Exciton Dressing by Extreme Nonlinear Magnons in a Layered Semiconductor (2024)\n**[chunk: 2411-14943v1::c0018]**\n\nThis paper explores the **nonlinear regime** of exciton\u2013magnon coupling in CrSBr.",
+          "chunk_id": "2411-14943v1::c0018",
+          "supported": true,
+          "reason": "The chunk explicitly describes nonlinear magnon behavior and exciton-magnon coupling in CrSBr, including nonlinear magnon frequency dependence, harmonic generation, and magnon-dressed exciton states, directly supporting the claim about exploring the nonlinear regime of exciton-magnon coupling in CrSBr."
+        },
+        {
+          "claim": "Magnetically-Dressed CrSBr Exciton-Polaritons in Ultrastrong Coupling Regime (2023)\n**[chunk: 2302-07616v1::c0001]**\n\nThis work embeds CrSBr in a **Tamm plasmon microcavity** (bottom DBR + CrSBr flake + top silver mirror) and demonstrates:\n- A **giant coupling strength of up to 169 meV**, reaching the **ultrastrong coupling (USC) regime** where the coupling is comparable to the photon frequency.",
+          "chunk_id": "2302-07616v1::c0001",
+          "supported": true,
+          "reason": "The chunk explicitly describes the Tamm plasmon microcavity structure (bottom DBR + CrSBr flake + top silver mirror) and states a giant coupling strength of up to 169 meV reaching the ultrastrong coupling regime, directly matching the claim."
+        },
+        {
+          "claim": "Exciton-Polariton Condensate in the van der Waals Magnet CrSBr (2025)\n**[chunk: 2501-18233v2::c0017]**\n\nThis paper reports the first **exciton-polariton condensate** in CrSBr, evidenced by a power-dependent threshold, first-order spatio-temporal coherence, and second-order quantum coherence.",
+          "chunk_id": "2501-18233v2::c0017",
+          "supported": true,
+          "reason": "The chunk explicitly states the condensate is identified via power-dependent threshold, first-order spatio-temporal coherence, and second-order quantum coherence, directly matching the claim."
+        },
+        {
+          "claim": "Strong Exciton\u2013Phonon Coupling as a Fingerprint of Magnetic Ordering in CrSBr (2023)\n**[chunk: 2308-04895v2::c0000]** **[chunk: 2308-04895v2::c0001]**\n\nWhile primarily focused on **exciton\u2013phonon** (rather than exciton\u2013magnon) coupling, this paper is contextually relevant because it establishes that the optical, electronic, and magnetic degrees of freedom in CrSBr are deeply entangled:\n- Strong coupling between excitons and an optical phonon at **118 cm\u207b\u00b9 (~14.6 meV)** (out-of-plane Br vibration) is identified via low-temperature PL spectroscopy.",
+          "chunk_id": "2308-04895v2::c0000",
+          "supported": true,
+          "reason": "The chunk's abstract explicitly states identification of coupling between excitons and an optical phonon at 118 cm\u207b\u00b9 (~14.6 meV) due to out-of-plane vibration of Br atoms, directly matching the claim's specific details."
+        },
+        {
+          "claim": "Strong Exciton\u2013Phonon Coupling as a Fingerprint of Magnetic Ordering in CrSBr (2023)\n**[chunk: 2308-04895v2::c0000]** **[chunk: 2308-04895v2::c0001]**\n\nWhile primarily focused on **exciton\u2013phonon** (rather than exciton\u2013magnon) coupling, this paper is contextually relevant because it establishes that the optical, electronic, and magnetic degrees of freedom in CrSBr are deeply entangled:\n- Strong coupling between excitons and an optical phonon at **118 cm\u207b\u00b9 (~14.6 meV)** (out-of-plane Br vibration) is identified via low-temperature PL spectroscopy.",
+          "chunk_id": "2308-04895v2::c0001",
+          "supported": true,
+          "reason": "The chunk explicitly states that the paper identifies strong exciton-phonon coupling in nanometer-thick CrSBr using temperature-dependent PL spectroscopy, directly supporting the claim about exciton-phonon coupling and its investigation via low-temperature PL spectroscopy in CrSBr."
+        }
+      ]
+    }
+  },
+  {
+    "id": "t3",
+    "completed": true,
+    "tools_used": [
+      "literature_search",
+      "query_materials_project",
+      "run_dummy_dft"
+    ],
+    "expected_tool_used": true,
+    "expected_substr_in_answer": true,
+    "n_steps": 3,
+    "wall_time_s": 20.1,
+    "pass": true,
+    "faithfulness_rate": 1.0,
+    "audit": {
+      "n_citations_total": 3,
+      "n_supported": 3,
+      "faithfulness_rate": 1.0,
+      "details": [
+        {
+          "claim": "It is a **trivial ferromagnetic insulator**, where the Cr d_{x\u00b2\u2212y\u00b2, xy, z\u00b2} orbitals are fully occupied and the Cr d_{xz, yz} orbitals are completely empty, giving rise to this sizeable insulating gap [chunk: 2112-10924v1::c0002].",
+          "chunk_id": "2112-10924v1::c0002",
+          "supported": true,
+          "reason": "The chunk explicitly states that CrI3 and CrBr3 monolayers are trivial FM insulators where Cr d_{x\u00b2-y\u00b2, xy, z\u00b2} orbitals are fully occupied, Cr d_{xz, yz} orbitals are completely empty, resulting in insulating states with sizeable band gaps."
+        },
+        {
+          "claim": "A complementary experimental + DFT+U study using scanning tunneling spectroscopy (STS) and spin-polarized DFT with Hubbard corrections confirmed the presence of spin-correlated flat-band states within this gap and demonstrated that the gap can be gate-tuned by up to **240 meV** via electrostatic gating [chunk: 2212-02772v1::c0001].",
+          "chunk_id": "2212-02772v1::c0001",
+          "supported": true,
+          "reason": "The chunk explicitly states that STS studies on CrBr3 monolayers demonstrate a 240 meV gate-tunable bandgap and spin-correlated flat-band states, consistent with the claim, though it does not specifically mention spin-polarized DFT+U methodology."
+        },
+        {
+          "claim": "> **Citation:** \"A family tree of two-dimensional magnetic materials with tunable topological properties,\" arXiv:2112.10924 (2021) [chunk: 2112-10924v1::c0002].",
+          "chunk_id": "2112-10924v1::c0002",
+          "supported": true,
+          "reason": "The chunk is from arXiv:2112.10924 and directly describes a family tree of two-dimensional magnetic materials with tunable topological properties, matching the claim's description exactly."
+        }
+      ]
+    }
+  },
+  {
+    "id": "t4",
+    "completed": true,
+    "tools_used": [
+      "literature_search",
+      "query_materials_project"
+    ],
+    "expected_tool_used": true,
+    "expected_substr_in_answer": true,
+    "n_steps": 2,
+    "wall_time_s": 23.39,
+    "pass": true,
+    "faithfulness_rate": 1.0,
+    "audit": {
+      "n_citations_total": 12,
+      "n_supported": 12,
+      "faithfulness_rate": 1.0,
+      "details": [
+        {
+          "claim": "Here is what each chunk contributed:\n  - [chunk: 2309-04778v1::c0007]: CrSBr has A-type antiferromagnetic (AFM) order below a N\u00e9el temperature T_N = 131 K, with strong ferromagnetic intralayer correlations near the AFM-to-paramagnetic transition (critical temperature ~160\u2013170 K range from Arrott plots).",
+          "chunk_id": "2309-04778v1::c0007",
+          "supported": true,
+          "reason": "The chunk directly states A-type AFM order below TN = 131 K and a critical temperature ranging from 160 to 170 K from Arrott plots with strong FM intralayer correlations near the AFM-to-PM transition, matching the claim exactly."
+        },
+        {
+          "claim": "- [chunk: 2412-19136v1::c0005]: Computed magnetic ordering (critical) temperature of CrSBr is ~130 K, consistent with experiment; the material is a magnetic semiconductor with a finite band gap.",
+          "chunk_id": "2412-19136v1::c0005",
+          "supported": true,
+          "reason": "The chunk explicitly states the computed critical temperature of CrSBr is 130K, aligns with experimental findings, and notes the band gap remains finite (unchanged), directly supporting both parts of the claim."
+        },
+        {
+          "claim": "- [chunk: 2504-09920v2::c0005]: CrSBr undergoes a paramagnetic-to-antiferromagnetic transition at T_N \u2248 132 K; it is semiconducting with resistances in the megaohm range.",
+          "chunk_id": "2504-09920v2::c0005",
+          "supported": true,
+          "reason": "The chunk explicitly states that CrSBr undergoes a paramagnetic-to-antiferromagnetic transition at T_N ~132 K and shows resistance values in the range of a few megaohms, directly supporting both parts of the claim."
+        },
+        {
+          "claim": "- [chunk: 2502-15985v1::c0006]: The magnetic critical temperature of CrSBr is ~140 K; the material exhibits magnetoresistance effects consistent with a magnetic semiconductor.",
+          "chunk_id": "2502-15985v1::c0006",
+          "supported": true,
+          "reason": "The chunk explicitly states that the critical temperature of CrSBr is approximately 140 K and describes magnetoresistance effects (MR up to ~27%) consistent with a magnetic semiconductor."
+        },
+        {
+          "claim": "- [chunk: 2407-05614v2::c0008]: Critical temperature T_C \u2248 138.75 K determined via quantum noise spectroscopy; CrSBr shows 2D Ising-like critical behavior near its magnetic ordering transition.",
+          "chunk_id": "2407-05614v2::c0008",
+          "supported": true,
+          "reason": "The chunk explicitly states T_C fixed at 138.75 K as determined from the 1/T2 peak and discusses 2D Ising-like critical behavior (\u03bd_Ising) for CrSBr's magnetic ordering transition via quantum noise spectroscopy analysis."
+        },
+        {
+          "claim": "Here is a summary of its actual known critical/transition temperatures:\n\n| Property | Value | Source |\n|---|---|---|\n| N\u00e9el temperature (T_N) \u2014 AFM order | ~130\u2013132 K | [chunk: 2309-04778v1::c0007], [chunk: 2504-09920v2::c0005] |\n| Computed magnetic ordering temperature | ~130 K | [chunk: 2412-19136v1::c0005] |\n| Magnetic critical temperature (quantum noise spectroscopy) | ~138\u2013140 K | [chunk: 2407-05614v2::c0008], [chunk: 2502-15985v1::c0006] |\n| FM intralayer correlation onset (Arrott plots) | ~160\u2013170 K | [chunk: 2309-04778v1::c0007] |\n\nCrSBr is a **semiconductor** (resistances in the M\u03a9 range [chunk: 2504-09920v2::c0005]) with strong spin-charge coupling and layered antiferromagnetic order.",
+          "chunk_id": "2309-04778v1::c0007",
+          "supported": true,
+          "reason": "The chunk directly states Arrott plots reveal a critical temperature ranging from 160 to 170 K for FM intralayer correlations, and confirms TN = 131 K for AFM order, matching both values cited in the claim for this chunk."
+        },
+        {
+          "claim": "Here is a summary of its actual known critical/transition temperatures:\n\n| Property | Value | Source |\n|---|---|---|\n| N\u00e9el temperature (T_N) \u2014 AFM order | ~130\u2013132 K | [chunk: 2309-04778v1::c0007], [chunk: 2504-09920v2::c0005] |\n| Computed magnetic ordering temperature | ~130 K | [chunk: 2412-19136v1::c0005] |\n| Magnetic critical temperature (quantum noise spectroscopy) | ~138\u2013140 K | [chunk: 2407-05614v2::c0008], [chunk: 2502-15985v1::c0006] |\n| FM intralayer correlation onset (Arrott plots) | ~160\u2013170 K | [chunk: 2309-04778v1::c0007] |\n\nCrSBr is a **semiconductor** (resistances in the M\u03a9 range [chunk: 2504-09920v2::c0005]) with strong spin-charge coupling and layered antiferromagnetic order.",
+          "chunk_id": "2504-09920v2::c0005",
+          "supported": true,
+          "reason": "The chunk explicitly states CrSBr shows resistance values in the range of a few megaohms (M\u03a9) and undergoes a paramagnetic to antiferromagnetic transition at N\u00e9el temperature T_N ~132 K, directly supporting both the semiconductor resistance claim and the T_N value cited."
+        },
+        {
+          "claim": "Here is a summary of its actual known critical/transition temperatures:\n\n| Property | Value | Source |\n|---|---|---|\n| N\u00e9el temperature (T_N) \u2014 AFM order | ~130\u2013132 K | [chunk: 2309-04778v1::c0007], [chunk: 2504-09920v2::c0005] |\n| Computed magnetic ordering temperature | ~130 K | [chunk: 2412-19136v1::c0005] |\n| Magnetic critical temperature (quantum noise spectroscopy) | ~138\u2013140 K | [chunk: 2407-05614v2::c0008], [chunk: 2502-15985v1::c0006] |\n| FM intralayer correlation onset (Arrott plots) | ~160\u2013170 K | [chunk: 2309-04778v1::c0007] |\n\nCrSBr is a **semiconductor** (resistances in the M\u03a9 range [chunk: 2504-09920v2::c0005]) with strong spin-charge coupling and layered antiferromagnetic order.",
+          "chunk_id": "2412-19136v1::c0005",
+          "supported": true,
+          "reason": "The chunk explicitly states 'The obtained critical temperature of CrSBr is 130K, aligning perfectly with experimental findings,' directly supporting the claim of a computed magnetic ordering temperature of ~130 K."
+        },
+        {
+          "claim": "Here is a summary of its actual known critical/transition temperatures:\n\n| Property | Value | Source |\n|---|---|---|\n| N\u00e9el temperature (T_N) \u2014 AFM order | ~130\u2013132 K | [chunk: 2309-04778v1::c0007], [chunk: 2504-09920v2::c0005] |\n| Computed magnetic ordering temperature | ~130 K | [chunk: 2412-19136v1::c0005] |\n| Magnetic critical temperature (quantum noise spectroscopy) | ~138\u2013140 K | [chunk: 2407-05614v2::c0008], [chunk: 2502-15985v1::c0006] |\n| FM intralayer correlation onset (Arrott plots) | ~160\u2013170 K | [chunk: 2309-04778v1::c0007] |\n\nCrSBr is a **semiconductor** (resistances in the M\u03a9 range [chunk: 2504-09920v2::c0005]) with strong spin-charge coupling and layered antiferromagnetic order.",
+          "chunk_id": "2407-05614v2::c0008",
+          "supported": true,
+          "reason": "The chunk explicitly states T_C is fixed at 138.75 K as determined from the 1/T2 peak, directly supporting the ~138\u2013140 K magnetic critical temperature value attributed to this chunk."
+        },
+        {
+          "claim": "Here is a summary of its actual known critical/transition temperatures:\n\n| Property | Value | Source |\n|---|---|---|\n| N\u00e9el temperature (T_N) \u2014 AFM order | ~130\u2013132 K | [chunk: 2309-04778v1::c0007], [chunk: 2504-09920v2::c0005] |\n| Computed magnetic ordering temperature | ~130 K | [chunk: 2412-19136v1::c0005] |\n| Magnetic critical temperature (quantum noise spectroscopy) | ~138\u2013140 K | [chunk: 2407-05614v2::c0008], [chunk: 2502-15985v1::c0006] |\n| FM intralayer correlation onset (Arrott plots) | ~160\u2013170 K | [chunk: 2309-04778v1::c0007] |\n\nCrSBr is a **semiconductor** (resistances in the M\u03a9 range [chunk: 2504-09920v2::c0005]) with strong spin-charge coupling and layered antiferromagnetic order.",
+          "chunk_id": "2502-15985v1::c0006",
+          "supported": true,
+          "reason": "The chunk explicitly states that the critical temperature of CrSBr is approximately 140 K, consistent with the claim's '~138\u2013140 K' range for magnetic critical temperature measured by quantum noise spectroscopy."
+        },
+        {
+          "claim": "Here is a summary of its actual known critical/transition temperatures:\n\n| Property | Value | Source |\n|---|---|---|\n| N\u00e9el temperature (T_N) \u2014 AFM order | ~130\u2013132 K | [chunk: 2309-04778v1::c0007], [chunk: 2504-09920v2::c0005] |\n| Computed magnetic ordering temperature | ~130 K | [chunk: 2412-19136v1::c0005] |\n| Magnetic critical temperature (quantum noise spectroscopy) | ~138\u2013140 K | [chunk: 2407-05614v2::c0008], [chunk: 2502-15985v1::c0006] |\n| FM intralayer correlation onset (Arrott plots) | ~160\u2013170 K | [chunk: 2309-04778v1::c0007] |\n\nCrSBr is a **semiconductor** (resistances in the M\u03a9 range [chunk: 2504-09920v2::c0005]) with strong spin-charge coupling and layered antiferromagnetic order.",
+          "chunk_id": "2309-04778v1::c0007",
+          "supported": true,
+          "reason": "The chunk explicitly states Arrott plots reveal a critical temperature ranging from 160 to 170 K for FM intralayer correlations, and confirms TN = 131 K for A-type AFM order, directly supporting both relevant entries in the claim's table."
+        },
+        {
+          "claim": "Here is a summary of its actual known critical/transition temperatures:\n\n| Property | Value | Source |\n|---|---|---|\n| N\u00e9el temperature (T_N) \u2014 AFM order | ~130\u2013132 K | [chunk: 2309-04778v1::c0007], [chunk: 2504-09920v2::c0005] |\n| Computed magnetic ordering temperature | ~130 K | [chunk: 2412-19136v1::c0005] |\n| Magnetic critical temperature (quantum noise spectroscopy) | ~138\u2013140 K | [chunk: 2407-05614v2::c0008], [chunk: 2502-15985v1::c0006] |\n| FM intralayer correlation onset (Arrott plots) | ~160\u2013170 K | [chunk: 2309-04778v1::c0007] |\n\nCrSBr is a **semiconductor** (resistances in the M\u03a9 range [chunk: 2504-09920v2::c0005]) with strong spin-charge coupling and layered antiferromagnetic order.",
+          "chunk_id": "2504-09920v2::c0005",
+          "supported": true,
+          "reason": "The chunk explicitly states CrSBr shows resistance values in the range of a few megaohms (M\u03a9) and undergoes a paramagnetic to antiferromagnetic transition at N\u00e9el temperature T_N ~132 K, directly supporting both claims attributed to this chunk."
+        }
+      ]
+    }
+  },
+  {
+    "id": "t5",
+    "completed": true,
+    "tools_used": [
+      "query_materials_project",
+      "query_materials_project",
+      "literature_search"
+    ],
+    "expected_tool_used": true,
+    "expected_substr_in_answer": true,
+    "n_steps": 2,
+    "wall_time_s": 21.87,
+    "pass": true,
+    "faithfulness_rate": 0.75,
+    "audit": {
+      "n_citations_total": 8,
+      "n_supported": 6,
+      "faithfulness_rate": 0.75,
+      "details": [
+        {
+          "claim": "Experimentally, monolayer CrI\u2083 orders ferromagnetically at ~45 K, while monolayer CrBr\u2083 does so at ~34 K [chunk: 2007-14379v3::c0013].",
+          "chunk_id": "2007-14379v3::c0013",
+          "supported": true,
+          "reason": "The table explicitly lists experimental single-layer Curie temperatures of 45 K for CrI\u2083 and 34 K for CrBr\u2083, directly matching the claim."
+        },
+        {
+          "claim": "---\n\n### Theoretical/Computed Values\n\nA first-principles + Monte Carlo study found monolayer T\u2092 values of **69 K (CrI\u2083)** and **39 K (CrBr\u2083)**, with relative deviations from experiment of ~53% and ~15%, respectively [chunk: 2007-14379v3::c0013].",
+          "chunk_id": "2007-14379v3::c0013",
+          "supported": true,
+          "reason": "The chunk explicitly lists monolayer Tc values of 69 K (CrI3) and 39 K (CrBr3) and states relative deviations from experimental values of 53.3% and 14.7% for CrI3 and CrBr3 monolayers, matching the claim."
+        },
+        {
+          "claim": "A separate multi-method study (Monte Carlo, Green's function, renormalized spin-wave theory) gives [chunk: 2105-07958v3::c0013]:\n\n| Method | CrI\u2083 | CrBr\u2083 |\n|---|---|---|\n| Monte Carlo | 63 K | 37 K |\n| Green's function | 83 K | 39 K |\n| RNSW | 36 K | 20 K |\n| Mean-field (NN) | 89 K | 55 K |\n| **Experimental** | **45 K** | **35 K** |\n\nThe spread across methods illustrates the sensitivity to exchange anisotropy.",
+          "chunk_id": "2105-07958v3::c0013",
+          "supported": true,
+          "reason": "The chunk's Table II directly provides the MC, Green's function, RNSW, Mean-Field (NN), and Experimental Curie temperatures for CrI\u2083 and CrBr\u2083 with values matching the claim exactly (MC: 63/37 K, Green: 83/39 K, RNSW: 36/20 K, Mean-Field NN: 89/55 K, Exp: 45/35 K)."
+        },
+        {
+          "claim": "CrI\u2083 has a larger nearest-neighbor anisotropy (\u0394_NN = 0.029) than CrBr\u2083 (\u0394_NN = 0.010), which causes MC and Green's function to diverge more for CrI\u2083 [chunk: 2105-07958v3::c0014].",
+          "chunk_id": "2105-07958v3::c0014",
+          "supported": true,
+          "reason": "The chunk's Table III explicitly lists \u0394_NN = 0.029 for CrI\u2083 and \u0394_NN = 0.010 for CrBr\u2083, and the text states that MC Curie temperature is below Green's function for CrI\u2083 due to its higher anisotropy, while they almost overlap for CrBr\u2083."
+        },
+        {
+          "claim": "Without long-range interactions, the same study finds lower estimates: ~41 K (CrI\u2083) and ~26 K (CrBr\u2083) via Green's function [chunk: 2105-07958v3::c0011].",
+          "chunk_id": "2105-07958v3::c0011",
+          "supported": true,
+          "reason": "The chunk directly states Curie temperatures of 41 K (CrI\u2083) and 26 K (CrBr\u2083) from the Green's function method, matching the claim exactly."
+        },
+        {
+          "claim": "---\n\n### Summary\n\n- **CrI\u2083 monolayer** has a higher Curie temperature (~45 K experimentally) than **CrBr\u2083 monolayer** (~34 K experimentally) \u2014 roughly a **30% difference** [chunk: 2007-14379v3::c0013].",
+          "chunk_id": "2007-14379v3::c0013",
+          "supported": true,
+          "reason": "The chunk's table explicitly lists experimental single-layer Curie temperatures of 45 K for CrI\u2083 and 34 K for CrBr\u2083, consistent with the ~30% difference claimed."
+        },
+        {
+          "claim": "1.38 meV for CrBr\u2083) and **larger magnetic anisotropy** [chunk: 2105-07958v3::c0014].",
+          "chunk_id": "2105-07958v3::c0014",
+          "supported": false,
+          "reason": "The chunk shows CrBr\u2083 has J_NN = 1.38 meV and \u2206_NN = 0.010, while CrI\u2083 has \u2206_NN = 0.029 (larger), so CrBr\u2083 does not have larger magnetic anisotropy than CrI\u2083 according to this data."
+        },
+        {
+          "claim": "- Both materials are **2D ferromagnets** whose long-range order is stabilized by magnetic anisotropy, consistent with the Mermin-Wagner theorem [chunk: 2007-14379v3::c0002].",
+          "chunk_id": "2007-14379v3::c0002",
+          "supported": false,
+          "reason": "The chunk discusses bulk layered ferromagnets using 3D Monte-Carlo simulations and does not mention 2D ferromagnetism, the Mermin-Wagner theorem, or magnetic anisotropy stabilizing long-range order in 2D systems."
+        }
+      ]
+    }
+  },
+  {
+    "id": "t6",
+    "completed": true,
+    "tools_used": [
+      "literature_search"
+    ],
+    "expected_tool_used": true,
+    "expected_substr_in_answer": true,
+    "n_steps": 2,
+    "wall_time_s": 20.54,
+    "pass": true,
+    "faithfulness_rate": 0.889,
+    "audit": {
+      "n_citations_total": 9,
+      "n_supported": 8,
+      "faithfulness_rate": 0.889,
+      "details": [
+        {
+          "claim": "Here is what each hit contributed:\n- **[chunk: 1808-00168v3::c0009]** \u2014 Directly relevant: describes using the **Holstein-Primakoff (HP) transformation** to calculate magnon dispersions in a 2D honeycomb Ising ferromagnet (CrI\u2083), followed by bosonic Hamiltonian diagonalization.",
+          "chunk_id": "1808-00168v3::c0009",
+          "supported": true,
+          "reason": "The chunk explicitly describes applying the Holstein-Primakoff transformation to the Ising Hamiltonian for CrI\u2083 (a 2D honeycomb Ising ferromagnet) and diagonalizing the resulting bosonic Hamiltonian to extract magnon dispersion relations, directly matching the claim."
+        },
+        {
+          "claim": "- **[chunk: 2210-15519v2::c0012]** \u2014 Partially relevant: provides the magnon dispersion relation for a 2D ferromagnet on a honeycomb lattice in the context of cavity magnomechanics, derived from an exchange/anisotropy Hamiltonian.",
+          "chunk_id": "2210-15519v2::c0012",
+          "supported": true,
+          "reason": "The chunk directly provides the magnon dispersion relation for a 2D ferromagnet on a honeycomb lattice derived from exchange interaction J and anisotropy K parameters, in the context of cavity magnomechanics with CrI3."
+        },
+        {
+          "claim": "- **[chunk: 2602-21575v1::c0000]** and **[chunk: 2602-21575v1::c0024]** \u2014 Tangentially relevant: discuss broader computational frameworks for patterned 2D magnetism (Monte Carlo, spin dynamics, first-principles), but not specifically magnon dispersion methods.",
+          "chunk_id": "2602-21575v1::c0000",
+          "supported": true,
+          "reason": "The chunk is the abstract of a review paper on computational frameworks for patterned 2D magnetism covering Monte Carlo, spin dynamics, and first-principles methods, but does not specifically address magnon dispersion methods, consistent with the claim that it is only tangentially relevant."
+        },
+        {
+          "claim": "- **[chunk: 2602-21575v1::c0000]** and **[chunk: 2602-21575v1::c0024]** \u2014 Tangentially relevant: discuss broader computational frameworks for patterned 2D magnetism (Monte Carlo, spin dynamics, first-principles), but not specifically magnon dispersion methods.",
+          "chunk_id": "2602-21575v1::c0024",
+          "supported": true,
+          "reason": "The chunk discusses broad computational frameworks (stochastic dynamics, multiphysics coupling, quantum corrections) for patterned 2D magnetic nanostructures without specifically addressing magnon dispersion methods, consistent with the claim."
+        },
+        {
+          "claim": "- **[chunk: 1902-04719v1::c0003]** \u2014 Off-topic: focuses on experimental magnon *transport* measurements, not dispersion calculations.",
+          "chunk_id": "1902-04719v1::c0003",
+          "supported": true,
+          "reason": "The chunk explicitly describes experimental magnon transport measurements in MnPS3 devices, with no mention of dispersion calculations, confirming the claim that it focuses on experimental magnon transport measurements rather than dispersion calculations."
+        },
+        {
+          "claim": "This is exactly the procedure used to calculate the two terahertz spin-wave branches in the 2D honeycomb Ising ferromagnet CrI\u2083 [chunk: 1808-00168v3::c0009].",
+          "chunk_id": "1808-00168v3::c0009",
+          "supported": true,
+          "reason": "The chunk explicitly describes the Holstein-Primakoff transformation applied to the Ising Hamiltonian for CrI\u2083 with two Cr\u00b3\u207a sublattices to extract magnon dispersion relations, which is exactly the procedure referenced in the claim for calculating spin-wave branches in the 2D honeycomb Ising ferromagnet CrI\u2083."
+        },
+        {
+          "claim": "The approach is standard across honeycomb and other 2D lattice magnets, and the same dispersion formalism \u2014 based on exchange interaction $J$, anisotropy $K$, and external field $B$ \u2014 also appears in cavity magnomechanics models of 2D CrI\u2083 [chunk: 2210-15519v2::c0012].",
+          "chunk_id": "2210-15519v2::c0012",
+          "supported": true,
+          "reason": "The chunk explicitly presents the magnon dispersion relation for 2D ferromagnets on a honeycomb lattice in terms of exchange interaction J, anisotropy K, and external field B, in the context of a cavity magnomechanics model of 2D CrI\u2083."
+        },
+        {
+          "claim": "It is often supplemented by first-principles DFT calculations to extract the exchange parameters ($J$, $K$) that feed into the spin Hamiltonian [chunk: 2602-21575v1::c0000].",
+          "chunk_id": "2602-21575v1::c0000",
+          "supported": false,
+          "reason": "The chunk mentions first-principles calculations informing multiscale parameterization but does not specifically state that DFT calculations are used to extract exchange parameters (J, K) that feed into a spin Hamiltonian."
+        },
+        {
+          "claim": "**Key citation:** *\"Raman fingerprint of two terahertz spin wave branches in a two-dimensional honeycomb Ising ferromagnet\"* (arXiv: 1808.00168v3) [chunk: 1808-00168v3::c0009].",
+          "chunk_id": "1808-00168v3::c0009",
+          "supported": true,
+          "reason": "The chunk is from the paper 1808-00168v3 and directly contains content about Raman spectroscopy and magnon (spin wave) dispersion in CrI3, a two-dimensional honeycomb Ising ferromagnet, consistent with the cited paper's topic."
+        }
+      ]
+    }
+  },
+  {
+    "id": "t7",
+    "completed": true,
+    "tools_used": [],
+    "expected_tool_used": true,
+    "expected_substr_in_answer": true,
+    "n_steps": 1,
+    "wall_time_s": 3.96,
+    "pass": true,
+    "faithfulness_rate": 0.0,
+    "audit": {
+      "n_citations_total": 0,
+      "n_supported": 0,
+      "faithfulness_rate": 0.0,
+      "details": []
+    }
+  }
+]
