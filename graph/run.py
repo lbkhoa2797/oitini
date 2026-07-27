@@ -58,6 +58,7 @@ def main():
             "latest_verdict": None,
             "plan": None,
             "final_report": None,
+            "citation_audit": None,
         }
 
     # Stream intermediate states for visibility.
@@ -81,6 +82,20 @@ def main():
     print("\n" + "=" * 60)
     print(report)
     print("=" * 60)
+
+    # Citation faithfulness is the number that says whether the report above can
+    # be believed, so print it next to the report rather than burying it in state.
+    audit = final.get("citation_audit")
+    if audit:
+        if audit.get("error"):
+            print(f"\ncitation audit FAILED to run: {audit['error']}")
+        else:
+            rate = audit.get("faithfulness_rate")
+            n_ok, n_all = audit.get("n_supported"), audit.get("n_citations_total")
+            print(f"\ncitation faithfulness: {rate} ({n_ok}/{n_all} citations supported)")
+            for d in audit.get("details", []):
+                if not d.get("supported"):
+                    print(f"  UNSUPPORTED [{d['chunk_id']}] {d.get('reason', '')}")
 
     if args.report_out:
         Path(args.report_out).write_text(report)

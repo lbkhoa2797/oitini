@@ -1,79 +1,75 @@
-# config.py
+# =========================================================================
+# USER SETTINGS — edit these for your machine / project.
+# everything in this section must be set before the pipeline can run;
+# =========================================================================
+#
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 load_dotenv()
 
-# =========================================================================
-# USER SETTINGS — edit these for your machine / project.
-# everything in section 1–3 must be set before the pipeline can run;
-# sections 4–5 have working defaults
-# =========================================================================
-
-# --- 1. DFT toolchain paths (REQUIRED — replace the placeholders) --------
-# Modify QE, Pseudopotentials, Wannier90, Perturbo to your system path
-QE_BIN = "path/to/qe/bin"
-QE_PSEUDOS_DIR = "path/to/your/pseudo-potentials/dir/"
-W90_DIR = "path/to/your/wannier90/bin/"
-PERTURBO_BIN = "/path/to/your/perturbo/bin/"
-
-# --- 2. Machine resources (should match to your hardware) ------------
-MPI_NPROCS = 12
-
-# --- 3. API credentials & contact (REQUIRED for Materials Project) -------
-# Set MP_API_KEY in your .env file (or export it in your shell)
-MP_API_KEY = os.environ.get("MP_API_KEY", "")
-CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "")   # your email, used in the API user agent
-
-# --- 4. Research topic (defines what the pipeline studies) ---------------
-# ARXIV_QUERY = (
-#     'abs:"chromium sulfur bromide" OR abs:"CrSBr" '
-#     'OR abs:"van der Waals" OR abs:"magnetic semiconductor" '
-#     'OR abs:"exciton-phonon" OR abs:"exciton-magnon" '
-#     'OR abs:"magnon-phonon" OR abs:"coherent phonon" '
-#     'OR abs:"coherent magnon" OR abs:"coupling"'
-# )
-
+# 1. Research topic - (REQUIRED for any grounded task)
+# For example:
 ARXIV_QUERY = (
-   'abs:"silicon" OR abs:"mobility" OR abs:"transport" '
-   'OR abs:"electron-phonon" OR abs:"thermal conductivity" '
-   'OR abs:"Perturbo" OR abs:"EPW" '
-   'OR abs:"Wannier function" OR abs:"first-principles"'
+    # Clause 1 — material-class anchor. This is what the old query lacked
+    # entirely: every paper in the corpus must actually be about an oxide
+    # semiconductor / transparent conductor, not merely mention one.
+    '(abs:"oxide semiconductor" OR abs:"transparent conducting oxide" '
+    'OR abs:"transparent conductive oxide" OR abs:"transparent oxide" '
+    'OR abs:"amorphous oxide semiconductor" OR abs:"metal oxide thin film" '
+    'OR abs:"oxide thin film" OR abs:"wide band gap oxide" '
+    'OR abs:"wide bandgap oxide" OR abs:"ternary oxide" OR abs:"binary oxide") '
+    'AND '
+    # Clause 2 — the evidence the run must cite: measured or computed
+    # optoelectronic properties, or a transparent/flexible device demonstration.
+    '(abs:"band gap" OR abs:"bandgap" OR abs:"optical transmittance" '
+    'OR abs:"visible transparency" OR abs:"optical absorption edge" '
+    'OR abs:"carrier mobility" OR abs:"electron mobility" '
+    'OR abs:"carrier concentration" OR abs:"sheet resistance" '
+    'OR abs:"first-principles" OR abs:"density functional theory" '
+    'OR abs:"electronic structure" OR abs:"thin-film transistor" '
+    'OR abs:"transparent electrode" OR abs:"flexible substrate" '
+    'OR abs:"flexible electronics" OR abs:"low-temperature deposition")'
 )
 
-# ARXIV_QUERY = (
-#     '(abs:"wearable" OR abs:"flexible electronics" OR abs:"stretchable" '
-#     'OR abs:"electronic skin" OR abs:"e-skin" OR abs:"epidermal electronics" '
-#     'OR abs:"e-textile" OR abs:"smart textile") '
-#     'AND '
-#     '(abs:"optical" OR abs:"transparent" OR abs:"transmittance" '
-#     'OR abs:"conductivity" OR abs:"carrier mobility" OR abs:"charge transport" '
-#     'OR abs:"sheet resistance" OR abs:"piezoelectric" OR abs:"thermoelectric" '
-#     'OR abs:"triboelectric" OR abs:"dielectric")'
-# )
+# 2. Max number of papers to pull from the matching results
+ARXIV_MAX_RESULTS = 350
 
-ARXIV_MAX_RESULTS = 400
+# 3. Machine resources (should match to your hardware)
+MPI_NPROCS = 12
 
-# --- 5. Optional tuning (defaults are fine for most users) ---------------
+# 4. Optional tuning (defaults are fine for generally easy task)
 USE_LLM_CHUNK_CLASSIFIER = False   # True = Haiku classifies sections; False = keyword rules only
 MAX_DISCOVERY_ITERATIONS = 5
 
-# Model tiers — match cost to role
+# 5. Model tiers — match cost to role
 PLANNER_MODEL = "claude-opus-4-7"           # We want to use the best one for planner
 GENERATOR_MODEL = "claude-sonnet-4-6"       # creative role; balanced
 SIMULATOR_MODEL = "claude-sonnet-4-6"       # mostly orchestrates the tool
 CRITIC_MODEL = "claude-haiku-4-5"           # skeptical, narrow, cheap
 REPORTER_MODEL = "claude-sonnet-4-6"        # writes the final document
 
-# # Local LLM judge config (used in 6.5). Comment out if you'll stick with Anthropic.
-# LOCAL_JUDGE_MODEL = "Qwen/Qwen2.5-7B-Instruct"
-# LOCAL_JUDGE_QUANTIZATION = "8bit"   # "none" | "8bit" | "4bit" — pick by VRAM
+# 6. Audit every [chunk: ...] marker in the final report against the chunk it cites.
+# Costs one judge call per citation; turn off for quick iteration, not for a run
+# whose citations you intend to believe.
+RUN_CITATION_AUDIT = True
 
 # =========================================================================
 #  INTERNAL — derived settings; normally no need to edit below this line
 # =========================================================================
 
+# DFT toolchain paths (REQUIRED to be set in .env)
+QE_BIN = os.environ.get("QE_BIN", "")
+QE_PSEUDOS_DIR = os.environ.get("QE_PSEUDOS_DIR", "")
+W90_DIR = os.environ.get("W90_DIR", "")
+PERTURBO_BIN = os.environ.get("PERTURBO_BIN", "")
+
+# API credentials & contact (REQUIRED for Materials Project) -------
+MP_API_KEY = os.environ.get("MP_API_KEY", "")
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "")   # your email, used in the API user agent
+
+# Data paths
 ROOT = Path(__file__).parent
 PAPERS_DIR = ROOT / "data" / "papers"
 PARSED_DIR = ROOT / "data" / "parsed"

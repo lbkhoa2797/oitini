@@ -9,16 +9,11 @@ from tqdm import tqdm
 
 from config import PARSED_DIR, CHUNKS_PATH, USE_LLM_CHUNK_CLASSIFIER
 
-# import json
-# import re
-# from pathlib import Path
-# from typing import Iterator
-# from tqdm import tqdm
+# Section detector for arXiv preprints in markdown style. Limited to the top two
+# heading levels so a sub-subsection ("A. Crystal structure") is kept inside its
+# parent rather than becoming an unlabelled section of its own.
 
-# from config import PARSED_DIR, CHUNKS_PATH
-
-# section detector for arXiv preprints in markdown style (#, ##,...)
-SECTION_RE = re.compile(r"^#+\s+(.+)$", re.MULTILINE)
+SECTION_RE = re.compile(r"^#{1,2}\s+(.+)$", re.MULTILINE)
 
 def split_into_sections(markdown: str) -> list[tuple[str, str]]:
     """Return [(section_title, section_body), ...] preserving order."""
@@ -95,16 +90,35 @@ if _CACHE_PATH.exists():
 _client = Anthropic()
 
 def _classify_section_keyword(title: str) -> str:
-    """Keyword fallback. Kept for use when the LLM call fails."""
+    """Keyword fallback. Kept for use when the LLM call fails.
+
+    Order matters. Unambiguous buckets are tested first, and `results` is checked
+    before `methods` so that "Experimental results" lands in results rather than
+    being claimed by the "experimental" keyword.
+    """
     t = title.lower()
     if "abstract" in t: return "abstract"
-    if "introduction" in t: return "introduction"
-    if "method" in t or "computational" in t or "experimental" in t: return "methods"
-    if "result" in t or "discussion" in t: return "results"
-    if "conclusion" in t or "summary" in t: return "conclusion"
     if "reference" in t or "bibliograph" in t: return "references"
     if any(k in t for k in ("acknowledgement", "acknowledgment", "funding",
-                            "conflict of interest")): return "acknowledgement"
+                            "conflict of interest", "author contribution",
+                            "competing interest", "data availability")):
+        return "acknowledgement"
+    if any(k in t for k in ("appendix", "supplementary", "supporting information")):
+        return "other"
+    if any(k in t for k in ("conclusion", "summary", "outlook", "future work",
+                            "concluding remark", "perspective")):
+        return "conclusion"
+    if any(k in t for k in ("result", "discussion", "analysis", "properties",
+                            "performance")):
+        return "results"
+    if any(k in t for k in ("method", "computational", "experimental", "simulation",
+                            "calculation", "technique", "procedure", "setup",
+                            "theory", "theoretical", "formalism", "framework",
+                            "synthesis", "fabrication", "characterization",
+                            "measurement", "details")):
+        return "methods"
+    if any(k in t for k in ("introduction", "background", "motivation")):
+        return "introduction"
     return "other"
 
 def classify_section(title: str) -> str:

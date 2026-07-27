@@ -12,6 +12,8 @@ class Candidate(TypedDict):
     dft_status: Literal["pending", "running", "done", "failed", "cached"]
     dft_result: Optional[dict]          # parsed QE output
     critic_notes: Optional[str]         # per-candidate critic feedback
+    mp_summary: Optional[dict]          # Materials Project record: E_hull, MP gap, ...
+    evidence_ids: list[str]             # chunk_ids retrieved for THIS candidate
 
 
 def _merge_candidates(
@@ -24,11 +26,26 @@ def _merge_candidates(
     return list(by_formula.values())
 
 
+def _merge_evidence(existing: list[dict], new: list[dict]) -> list[dict]:
+    """Merge retrieved chunks by chunk_id, keeping the first copy of each.
+
+    A simple `add` reducer append every retrieval verbatim, so a run whose
+    retrieval query never changed carried the same chunks many times over
+    """
+    by_id = {e["chunk_id"]: e for e in existing}
+    for e in new:
+        by_id.setdefault(e["chunk_id"], e)
+    return list(by_id.values())
+
+
 class CriticVerdict(TypedDict):
     decision: Literal["continue", "done", "abort"]
     reason: str
     new_directions: list[str]           # suggestions fed back into the Generator
     n_meeting_targets: int              # how many candidates met ALL targets this pass
+    qualified: list[str]                # the formulas certified; the Reporter renders
+                                        # these rather than re-deciding, and the eval
+                                        # scores against them
 
 
 class DiscoveryState(TypedDict):
@@ -42,7 +59,7 @@ class DiscoveryState(TypedDict):
     # Updated each loop iteration ------------------------------------------
     iteration: int
     candidates: Annotated[list[Candidate], _merge_candidates]
-    evidence: Annotated[list[dict], add]           # retrieved chunks
+    evidence: Annotated[list[dict], _merge_evidence]   # retrieved chunks, deduped by id
     critic_history: Annotated[list[CriticVerdict], add]
 
     # Set by the latest Critic call ---------------------------------------
@@ -50,3 +67,6 @@ class DiscoveryState(TypedDict):
 
     # Set by Reporter at the end -------------------------------------------
     final_report: Optional[str]
+
+    # Set by Verifier after the Reporter -----------------------------------
+    citation_audit: Optional[dict]      # rag.verify.verify_answer() on final_report

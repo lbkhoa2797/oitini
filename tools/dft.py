@@ -4,6 +4,7 @@ if needed."""
 import hashlib
 import json
 import math
+import os
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -192,14 +193,61 @@ def _vacuum_axes(atoms: Atoms, min_vacuum: float = 7.0) -> list[int]:
 
 
 # ---- pseudopotentials ---------------------------------------------------
+# config.py holds these as plain strings so users can paste a path in without
+# worrying about types; every tool module wraps them itself (see
+# `Path(QE_BIN)` in phonon.py, `Path(W90_DIR)` in wannier90.py). This module
+# used to glob QE_PSEUDOS_DIR directly, which raised
+# "AttributeError: 'str' object has no attribute 'glob'" on every candidate.
+PSEUDO_DIR = Path(QE_PSEUDOS_DIR)
+
+
+def preflight_dft() -> None:
+    """Validate the DFT toolchain once, before the discovery loop starts.
+
+    A missing pw.x or an unreadable pseudo directory cannot be fixed by trying a
+    different material, but simulator_node catches failures per candidate and
+    keeps going. So one config mistake previously surfaced as 22 identical
+    failures spread over 5 iterations -- after 22 Materials Project round-trips
+    and a full report pass on an empty result. Fail once instead, naming the
+    config key that needs fixing.
+    """
+    # Unset comes first and by name: these now live in .env, and Path("") is
+    # Path("."), which would otherwise surface as a baffling "no *.upf in .".
+    for key, value in (("QE_BIN", QE_BIN), ("QE_PSEUDOS_DIR", QE_PSEUDOS_DIR)):
+        if not value:
+            raise ValueError(
+                f"{key} is not set. Add it to your .env — see env.sample for the "
+                "expected keys."
+            )
+
+    pw = Path(QE_BIN) / "pw.x"
+    if not pw.exists():
+        raise FileNotFoundError(
+            f"QE_BIN is {QE_BIN!r} but {pw} does not exist. Point QE_BIN in .env "
+            "at the Quantum ESPRESSO bin/ directory."
+        )
+    if not os.access(pw, os.X_OK):
+        raise PermissionError(f"{pw} is not executable (QE_BIN in .env).")
+    if not PSEUDO_DIR.is_dir():
+        raise NotADirectoryError(
+            f"QE_PSEUDOS_DIR is {QE_PSEUDOS_DIR!r}, which is not a directory. "
+            "Point it in .env at your UPF pseudopotential directory."
+        )
+    if not any(PSEUDO_DIR.glob("*.upf")):
+        raise FileNotFoundError(
+            f"no *.upf files in QE_PSEUDOS_DIR ({PSEUDO_DIR}). run_dft looks for "
+            "'<Symbol>.upf', e.g. Zn.upf."
+        )
+
+
 def _pseudo_map(atoms: Atoms) -> dict:
     """Map element symbols to pseudopotential filenames in QE_PSEUDOS_DIR."""
     by_symbol = {}
     for symbol in set(atoms.get_chemical_symbols()):
-        candidates = list(QE_PSEUDOS_DIR.glob(f"{symbol}.upf"))
+        candidates = list(PSEUDO_DIR.glob(f"{symbol}.upf"))
         if not candidates:
             raise FileNotFoundError(
-                f"no pseudopotential for '{symbol}' in {QE_PSEUDOS_DIR}"
+                f"no pseudopotential for '{symbol}' in {PSEUDO_DIR}"
             )
         by_symbol[symbol] = candidates[0].name
     return by_symbol
@@ -207,10 +255,10 @@ def _pseudo_map(atoms: Atoms) -> dict:
 
 def _z_valence(symbol: str) -> float:
     """Read z_valence from the UPF pseudopotential file for *symbol*."""
-    candidates = list(QE_PSEUDOS_DIR.glob(f"{symbol}.upf"))
+    candidates = list(PSEUDO_DIR.glob(f"{symbol}.upf"))
     if not candidates:
         raise FileNotFoundError(
-            f"no pseudopotential for '{symbol}' in {QE_PSEUDOS_DIR}"
+            f"no pseudopotential for '{symbol}' in {PSEUDO_DIR}"
         )
     text = candidates[0].read_text()
     m = re.search(r'z_valence\s*=\s*"?\s*([\d.]+)', text)
@@ -219,12 +267,18 @@ def _z_valence(symbol: str) -> float:
     return float(m.group(1))
 
 
-def _compute_nbnd(atoms: Atoms, nspin, extra: int = 2) -> int:
+def _compute_nbnd(atoms: Atoms, nspin, extra: int = 8) -> int:
     """Compute nbnd = number of occupied bands + *extra*.
 
     Each band holds 2 electrons (nspin=1) or 1 electron per spin channel
     (nspin=2), but in both cases QE's occupied-band count equals
     ceil(nelec / 2), so the formula is the same.
+
+    *extra* was 2 -- enough to locate the CBM but not to resolve the conduction
+    band across the mesh, which _parse_qe_xml needs for cb_width_eV. Empty bands
+    are cheap; 8 costs little and makes the conduction-band quantities meaningful.
+    Note _cache_key does not include nbnd, so changing this does not invalidate
+    already-cached runs -- clear data/dft_runs to recompute them.
     """
     symbols = atoms.get_chemical_symbols()
     nelec = sum(_z_valence(s) for s in symbols)
@@ -329,6 +383,8 @@ def _parse_qe_xml(xml_path: Path) -> dict:
     # gapped states essentially at 0/1, and cold smearing's slight over/under-
     # shoots near the Fermi level never cross 0.5 the wrong way).
     vbm = cbm = direct = None
+    homo_ks: list[float] = []   # per-k highest occupied -- valence dispersion
+    lumo_ks: list[float] = []   # per-k lowest unoccupied -- conduction dispersion
     fractional = False
     for ks in bs.findall("ks_energies"):
         eig_el, occ_el = ks.find("eigenvalues"), ks.find("occupations")
@@ -346,8 +402,10 @@ def _parse_qe_xml(xml_path: Path) -> dict:
         k_occ = [e for e, o in zip(eigs, occs) if o > 0.5]
         k_uno = [e for e, o in zip(eigs, occs) if o <= 0.5]
         if k_occ:
+            homo_ks.append(max(k_occ))
             vbm = max(k_occ) if vbm is None else max(vbm, max(k_occ))
         if k_uno:
+            lumo_ks.append(min(k_uno))
             cbm = min(k_uno) if cbm is None else min(cbm, min(k_uno))
         if k_occ and k_uno:
             dk = min(k_uno) - max(k_occ)
@@ -367,6 +425,21 @@ def _parse_qe_xml(xml_path: Path) -> dict:
         })
         if direct is not None:
             fields["band_gap_direct_eV"] = 0.0 if metallic else direct * HARTREE_EV
+            # Whether the fundamental gap IS the optical one. Transparency is set
+            # by the absorption onset and carrier generation by the fundamental
+            # gap; in oxide semiconductors those routinely differ, so screening
+            # both against one number produces false rejections.
+            fields["gap_is_direct"] = bool(
+                not metallic and (direct - (cbm - vbm)) * HARTREE_EV < 0.05)
+        # Dispersion of the frontier bands across the sampled BZ. A conduction
+        # band built from extended metal ns orbitals is wide (high mobility);
+        # a flat one is not. Caveats: measured on the *coarse SCF k-grid*, so
+        # these are proxies rather than converged bandwidths, and under nspin=2
+        # the per-k arrays concatenate both spin channels, so a width spans both.
+        if len(lumo_ks) > 1:
+            fields["cb_width_eV"] = (max(lumo_ks) - min(lumo_ks)) * HARTREE_EV
+        if len(homo_ks) > 1:
+            fields["vb_width_eV"] = (max(homo_ks) - min(homo_ks)) * HARTREE_EV
     else:
         # No empty (or no filled) bands in the run -- fall back to the levels
         # QE itself reports for fixed-occupation calculations.

@@ -4,10 +4,13 @@ chunks support each cited claim in an agent's final answer."""
 import json
 import re
 from anthropic import Anthropic
+from config import CRITIC_MODEL
 from rag.retrieve import _get_bm25  # to look up chunks by id
 
 CITATION_RE = re.compile(r"\[chunk:\s*([a-zA-Z0-9_:\-]+)\]")
-JUDGE_MODEL = "claude-sonnet-4-6"
+# Follow the configured tiers rather than pinning a model here: the audit is a
+# narrow, skeptical yes/no judgement, the same role the Critic tier is sized for.
+JUDGE_MODEL = CRITIC_MODEL
 
 JUDGE_SYSTEM = """You are a citation auditor. Given a CLAIM made in an agent's final answer
 and a CHUNK from a scientific paper, decide whether the chunk SUPPORTS the claim.
@@ -19,15 +22,37 @@ A chunk SUPPORTS a claim only if it directly states or strongly implies the clai
 content (the same material, the same property, a consistent numerical range).
 A chunk that is merely topically related does NOT support the claim."""
 
+def _is_prose(sentence: str) -> bool:
+    """Is this a claim to audit, or just a bibliography row?
+
+    The splitter below breaks on sentence-ending punctuation, which markdown table
+    rows do not have -- so a whole "Cited evidence" table collapses into ONE
+    pseudo-claim carrying every chunk_id in it, and each is then judged against
+    "does this chunk support this table of titles?" The answer is always no, which
+    silently deflated faithfulness_rate on reports that were actually fine.
+
+    A row is skipped if, once the markers are removed, what remains is table
+    scaffolding rather than an assertion.
+    """
+    body = CITATION_RE.sub("", sentence)
+    body = re.sub(r"[|\-:\s]+", " ", body).strip()   # strip table pipes and rules
+    if "|" in sentence and len(body.split()) < 12:
+        return False              # short cell contents: a listing, not a claim
+    return bool(body)
+
+
 def extract_claims_with_citations(answer: str) -> list[tuple[str, list[str]]]:
     """Split answer into sentences; for each sentence with at least one [chunk: ...],
-    return (sentence, [chunk_ids])."""
+    return (sentence, [chunk_ids]). Bibliography rows are skipped -- see _is_prose."""
     sentences = re.split(r"(?<=[\.\?\!])\s+", answer.strip())
     out = []
     for s in sentences:
-        cids = CITATION_RE.findall(s)
-        if cids:
-            out.append((s, cids))
+        # A table can appear inside one "sentence"; audit its lines individually so
+        # a real claim sharing a block with a table is not thrown away with it.
+        for line in (s.split("\n") if "|" in s else [s]):
+            cids = CITATION_RE.findall(line)
+            if cids and _is_prose(line):
+                out.append((line.strip(), cids))
     return out
 
 def verify_answer(answer: str) -> dict:

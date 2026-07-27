@@ -31,7 +31,8 @@ SYSTEM_PROMPT = """You are a materials-discovery research assistant. You have ac
      reciprocal lattice (<KDIST> 1/A k-point spacing) — omit kgrid unless the user or
      a convergence check calls for a specific one. Returns total energy, convergence
      status, and band_info (nelec, nbnd_scf, num_atomic_wfc, elements) needed for
-     downstream Wannier90 calculations.
+     downstream Wannier90 calculations. Always treat the resulted band gap from LDA or PBE
+     functional as an underestimated value.
   4. run_wannier90 — run the NSCF + Wannier90 pipeline on top of a completed
      run_dft SCF (bulk or monolayer). ALWAYS pass that SCF's cache_key as
      parent_scf_cache_key.

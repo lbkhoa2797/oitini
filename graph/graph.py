@@ -7,7 +7,7 @@ from config import GRAPH_DB_PATH
 from graph.state import DiscoveryState
 from graph.nodes import (
     planner_node, generator_node, simulator_node,
-    critic_node, reporter_node,
+    evidence_node, critic_node, reporter_node, verifier_node,
 )
 
 
@@ -25,18 +25,24 @@ def build_graph(checkpointer=None):
     g.add_node("planner", planner_node)
     g.add_node("generator", generator_node)
     g.add_node("simulator", simulator_node)
+    g.add_node("evidence", evidence_node)
     g.add_node("critic", critic_node)
     g.add_node("reporter", reporter_node)
+    g.add_node("verifier", verifier_node)
 
     g.add_edge(START, "planner")
     g.add_edge("planner", "generator")
     g.add_edge("generator", "simulator")
-    g.add_edge("simulator", "critic")
+    # Evidence sits between simulation and criticism so the Critic judges a
+    # literature target against retrieved chunks rather than from recall.
+    g.add_edge("simulator", "evidence")
+    g.add_edge("evidence", "critic")
     g.add_conditional_edges(
         "critic", route_from_critic,
         {"generator": "generator", "reporter": "reporter"},
     )
-    g.add_edge("reporter", END)
+    g.add_edge("reporter", "verifier")
+    g.add_edge("verifier", END)
 
     return g.compile(checkpointer=checkpointer)
 

@@ -1,124 +1,212 @@
-# Oitini - an agent equipped with first-principles tools
+<h1 align="center">Oitini</h1>
 
-This repo is an AI research assistant for computational materials science, incorporating:
-* LLM tool-use API
-* RAG pipeline over arXiv papers
-* [Materials Project](https://next-gen.materialsproject.org/) for material query
+<p align="center">
+  <strong>A closed-loop agentic system for first-principles materials discovery.</strong><br>
+</p>
 
-Therefore, the Anthropic API key and the MP API key are necessary to run the agent.
+<p align="center">
+  <a href="#license"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue.svg"></a>
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue.svg">
+  <a href="https://lbkhoa2797.github.io/Oitini/generate_Si_epr.html"><img alt="Live sample runs" src="https://img.shields.io/badge/sample%20runs-live-brightgreen.svg"></a>
+</p>
 
-The project has two main components designed to work together:
-
-1. **Perturbo Workflow Agent** — Runs end-to-end [Perturbo](https://perturbo-code.github.io/) code workflows for first-principles calculations.
-2. **Closed-Loop Discovery System** — A multi-agent pipeline for autonomous material discovery.
-
-The idea is to enforce Physics guardrails to the LLM and produce retraceable results.
-
-Each step is cached for auditing. Thus the reproducibility is nearly 1-to-1, in case we want to publish the data from the agent.
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/30531e33-c0a8-456c-9fc6-6c4f8988e2bd">
+    <img src="https://github.com/user-attachments/assets/30531e33-c0a8-456c-9fc6-6c4f8988e2bd" width="850" alt="Rendered execution trace of an Oitini run">
+  </a>
+</p>
 
 ---
-### Before running:
-* Have `QE`, `Wannier90` and `Perturbo` installed and their paths specified in `config.py`.
-* Create the `.env` file with the `env.sample` as template in the root folder:
-```bash
-cp env.sample .env
-```
-Then enter your Anthropic API key and MP API keys:
-```
-ANTHROPIC_API_KEY=<your-anthropic-key>
-MP_API_KEY=<your-mp-key>
-```
-Please navigate to [Claude](https://platform.claude.com/) and [Materials Project](https://next-gen.materialsproject.org/materials) website for how to obtain these.
 
-#### Tracing with LangSmith
-The discovery graph can stream full traces — per-node runs, LLM calls with token/cost usage, RAG and DFT tool spans — to [LangSmith](https://smith.langchain.com).
+## Motivation
+Agent-generated data is only worth having if it can be checked. Here, we puts physics-based
+guardrails on the LLM and keeps every step cached and auditable, so a run reproduces almost
+exactly — the bar this data has to clear before it belongs in a paper.
+
+## Overview
+The project has two main components designed to work together:
+1. **Perturbo Workflow Agent** — An assistant to run [Perturbo](https://perturbo-code.github.io/) code workflows, with knowledge grounded in literature, incorporating:
+    * RAG pipeline over arXiv papers
+    * [Materials Project](https://next-gen.materialsproject.org/) for material query
+    * LLM tool-use API (DFT, DFPT, Perturbo,...)
+2. **Closed-Loop Discovery System** — A multi-agent pipeline for autonomous materials discovery.
+
+## Architecture
+ 
+```
+                    ┌───────────┐
+   discovery goal ─►│  Planner  │   target properties, search strategy, budget
+                    └─────┬─────┘  + toolchain preflight (stop if required tools are not satisfied)
+                          ▼     
+                    ┌───────────┐   ◄── RAG: hybrid BM25 + BGE over an arXiv corpus
+              ┌────►│ Generator │
+              │     └─────┬─────┘
+              │           ▼
+              │     ┌───────────┐   ◄── Materials Project: structure, E_hull, reference gap
+              │     │ Simulator │───► Quantum ESPRESSO, Wannier90, PERTURBO
+              │     └─────┬─────┘
+              │           │           
+              │           ▼
+              │     ┌───────────┐   ◄── retrieval per candidate, kept only if the chunk
+              │     │ Evidence  │       actually names that material
+              │     └─────┬─────┘
+              │           ▼
+              │     ┌───────────┐
+              │     │  Critic   │   physics sanity + goal check
+              │     └─────┬─────┘  
+              │           │
+    continue ─┘           └─ conclude ─►┌───────────┐
+                                        │ Reporter  │  cites only the chunks it was given
+                                        └─────┬─────┘
+                                              ▼
+                                        ┌───────────┐
+                                        │ Verifier  │  re-reads every [chunk: …] marker
+                                        └───────────┘  → faithfulness_rate
+```
+
+Routing after the Critic is deterministic Python over a structured verdict. States are checkpointed, so runs are resumable and open to human intervention mid-loop.
+
+Simulation and retrieval tools are additionally exposed through an MCP server. (experimental 🧪)
+
+---
+## See it work
+
+Two complete runs, rendered from real execution traces:
+
+| Task | What the agent did | Output |
+|---|---|---|
+| **CrX₃ Curie-temperature trends** | Retrieved from the arXiv corpus, reasoned over the halide series, produced a cited comparison | [View trace &rarr;](https://lbkhoa2797.github.io/Oitini/CrX3_Tc_trends.html) |
+| **Silicon electron&ndash;phonon database** | SCF (`pw.x`) &rarr; NSCF &rarr; Wannier90 &rarr; DFPT (`ph.x`) &rarr; `qe2pert.x`, producing `Si_epr.h5` (e-ph in Wannier gauge for PERTURBO) | [View trace &rarr;](https://lbkhoa2797.github.io/Oitini/generate_Si_epr.html) |
+
+## Quickstart
+
+```bash
+git clone https://github.com/lbkhoa2797/oitini.git && cd oitini
+pip install -r requirements.txt
+cp env.sample .env          # add the API keys and your QE / Wannier90 / PERTURBO paths
+./setup.sh                  # create the QE / Wannier90 / PERTURBO output directories
+```
+
+**Build a retrieval corpus.** Any literature-grounded run (the discovery loop, and literature
+questions to the workflow agent) reads from a local index, so build one first.
+
+1. In `config.py`, set `ARXIV_QUERY` to your relevant keywords (other parameters are optional).
+2. Run the files in `scripts/` in order to download, parse, chunk, and index the corpus.
+
+```bash
+# Download the corpus from arXiv
+python scripts/01_download.py
+# Parse the pdfs into structured JSON files
+python scripts/02_parse.py
+# Chunk + classify each section, then index with Chroma vector store (BGE embeddings, cosine) and a BM25 pickle (bm25.pkl)
+python scripts/03_chunk_and_index.py 
+# 04 is only for benchmarking and can be safely ignored
+```
+
+Then run your discovery task. For example,
+
+```bash
+python -m graph.run "Find a 2D ferromagnetic semiconductor with Curie temperature > 30 K \
+  and direct bandgap > 1 eV. Cite literature and verify with DFT."
+```
+
+**Requirements:** 
+* `QE`, `Wannier90`, and `PERTURBO` must be installed, with their paths set in `.env`
+(see `env.sample`). They live there rather than in `config.py` so that a tracked file never
+carries machine-local paths. Check them up front with:
+```bash
+python -c "from tools.dft import preflight_dft; preflight_dft()"
+```
+The discovery graph runs the same check before its first model call and names whichever key is wrong.
+* The API keys from [Claude](https://platform.claude.com/) and [Materials Project](https://next-gen.materialsproject.org/materials). (also through `.env`)
+
+### (Optional) Tracing with LangSmith
+The discovery graph can stream full traces per-node runs, LLM calls with token/cost usage, RAG and DFT tool spans to [LangSmith](https://smith.langchain.com).
+
 Opt-in by modifying the `.env` file with:
 ```
 LANGSMITH_TRACING=   # Set to true to enable LangSmith tracing
 LANGSMITH_API_KEY=   # API key obtained from LangSmith
 LANGSMITH_PROJECT=   # Name of your awesome project
 ```
-With the variables unset, the workflow runs exactly the same. At the end of the CLI, the link to LangSmith will be printed out or you can just search your LangSmith page.
+Leave them unset and the workflow behaves identically.
 
+When the run finishes, the CLI prints a link to the trace; you can also find it on your LangSmith project page.
 
-## Features & Usage
+## Features and Usage
 
-### 1. Build an arXiv Corpus for RAG with ReAct Loop
-
-1. In `config.py`, set `ARXIV_QUERY` to your relevant keywords (other parameters are optional).
-2. Run the scripts in `scripts/` in order to download, parse, chunk, and index the corpus.
-```bash
-# Create the data directories where the actual QE, Wannier90 and Perturbo outputs will be written
-./setup.sh
-# Download the corpus from arXiv
-python scripts/01_download.py
-# Parse the pdf to structured JSON files
-python scripts/02_parse.py
-# Chunk classify each section and index with Chroma vector store (BGE embeddings, cosine) and a BM25 pickle (bm25.pkl)
-python scripts/03_chunk_and_index.py 
-# 04 is only for benchmarking and can be safely ignored
-```
-
-### 2. Perturbo-robot (Perturbot 🤖) Research Agent
+### 1. Perturbo-robot (Perturbot 🤖) Research Assistant
 
 ```bash
-python agent.py "Compare the Curie temperature of CrX3 family. Explain the trend and cite relevant literatures."
+python agent.py "Compare the Curie temperature of CrX3 family. Explain the trend and cite relevant literature."
 # or
 python agent.py "Help me compute the Silicon electron-phonon database from qe2pert.x for processing with the Perturbo code."
 ```
 
-Execution traces are written to `traces/`. Use `utils/trace2html.py` to render them as HTML reports. For examples:
-<img width="800" height="700" alt="trace_demo" src="https://github.com/user-attachments/assets/2158a985-a57c-4d6b-9666-b17ceea423fd" />
+Traces land in `traces/`; render them as standalone HTML with `utils/trace2html.py`. For example:
+<img width="800" height="550" alt="trace_demo" src="https://github.com/user-attachments/assets/70665036-68cf-4a8d-9100-b3bbabf1368b" />
 
-For actual sample outputs, see the `docs/` directory or use the following links:
-* [CrX3 Curie temperature](https://lbkhoa2797.github.io/Oitini/CrX3_Tc_trends.html)
-* [Generating `Si_epr.h5` for Perturbo](https://lbkhoa2797.github.io/Oitini/generate_Si_epr.html)
+### 2. Closed-Loop Materials Discovery Agent
 
-### 3. Closed-Loop Material Discovery
-
-A multi-agent system built with LangGraph, featuring:
-- A **Planner → Generator → Simulator → Critic → Reporter** state graph
-- Real first-principles calculations via the ASE/Quantum ESPRESSO bridge
-- An MCP server fronting simulation and retrieval tools (currently experimental)
+A LangGraph staged multi-agent system, featuring:
+- A **Planner → Generator → Simulator → Evidence → Critic → Reporter → Verifier** state graph
+- Real first-principles calculations
+- Per-candidate literature retrieval, so a citation is tied to the material it describes
+- An automatic citation audit: every `[chunk: …]` marker in the report is re-checked against
+  the chunk it cites to inspect model faithfulness
 
 ```bash
 python -m graph.run "Find a 2D ferromagnetic semiconductor with Curie temperature > 30 K and direct bandgap > 1 eV. Cite literature for any property values."
 ```
-As mentioned, the trace can be visualize with [LangSmith](https://smith.langchain.com):
-
-<img width="800" height="450" alt="LangSmith_tracing" src="https://github.com/user-attachments/assets/30531e33-c0a8-456c-9fc6-6c4f8988e2bd" />
-
-Or you can print the thoughts of the discovery agent with `show_thoughts.py`:
+As mentioned, the trace can be visualized with [LangSmith](https://smith.langchain.com), or you can track the agent's thoughs with `show_thoughts.py`:
 ```
-python -m graph.show_thoughts <run_id>
-
-# For details, please use: python -m graph.show_thoughts --help
+python -m graph.show_thoughts <run_id> # --help for options
 ```
 <img width="800" height="480" alt="showthoughts" src="https://github.com/user-attachments/assets/2fafe505-5ea5-4085-a15c-e59db736d7dc" />
 
----
 
-## Key Dependencies
+## Repository layout
+
+```
+agent.py           ReAct workflow agent (Perturbot)
+graph/             LangGraph closed-loop discovery system
+tools/             Tool implementations: DFT, Wannier90, DFPT, qe2pert, retrieval, MP lookup
+rag/               Retrieval pipeline: chunking, embedding, hybrid search
+mcp_server/        MCP server fronting the simulation and retrieval tools
+scripts/           Corpus build: download → parse → chunk & index
+eval/              Evaluation tasks and harness
+utils/             Trace rendering (trace2html.py) and helpers
+docs/              Published sample outputs
+config.py          Corpus settings, model tiers, tuning (machine paths live in .env)
+```
+
+## Key dependencies
 
 | Package | Purpose |
 |---|---|
 | `anthropic` | Claude API client |
+| `langgraph` | Multi-agent state machine |
 | `sentence-transformers` | BGE embeddings and reranking |
-| `chromadb` | Vector database |
-| `rank-bm25` | BM25 sparse retrieval |
+| `chromadb` | Vector store |
+| `rank-bm25` | Sparse retrieval |
 | `docling` | PDF parsing with structure extraction |
 | `arxiv` | arXiv API client |
-| `mp-api` | Materials project API for crystal stuctures and relevant data |
----
+| `mp-api` | Materials Project structures and properties |
+| `ase` | Structure handling and the Quantum ESPRESSO bridge |
 
-Well, about the name, it's `Initio` spelling backward. I thought it sounds cool for a robot that can do `ab initio` calculations.
+## About the name
 
-Later, I found out it's more like an Italian food or a cocktail (which is also cool and I like them both so I just keep it).
+It's `Initio` being spelled backward. I think it is funny for a robot that can do `ab initio` calculations.
 
 ## Citation
 
-If you use Perturbo, please cite:
+If you use PERTURBO, please cite:
 
-> Jin-Jian Zhou, Jinsoo Park, I-Te Lu, Ivan Maliyov, Xiao Tong, Marco Bernardi,
-> *"PERTURBO: A software package for ab initio electron–phonon interactions, charge transport and ultrafast dynamics."*
-> [Comput. Phys. Commun. 264, 107970 (2021)](https://doi.org/10.1016/j.cpc.2021.107970)
+> J.-J. Zhou, J. Park, I-T. Lu, I. Maliyov, X. Tong, and M. Bernardi,
+> *PERTURBO: A software package for ab initio electron–phonon interactions, charge transport and
+> ultrafast dynamics*,
+> [Comput. Phys. Commun. **264**, 107970 (2021)](https://doi.org/10.1016/j.cpc.2021.107970).
+
+## License
+
+GPL-3.0. See [LICENSE](LICENSE).
