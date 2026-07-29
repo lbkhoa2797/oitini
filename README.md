@@ -75,8 +75,8 @@ Two complete runs, rendered from real execution traces:
 
 | Task | What the agent did | Output |
 |---|---|---|
-| **CrX₃ Curie-temperature trends** | Retrieved from the arXiv corpus, reasoned over the halide series, produced a cited comparison | [View trace &rarr;](https://lbkhoa2797.github.io/Oitini/CrX3_Tc_trends.html) |
-| **Silicon electron&ndash;phonon database** | SCF (`pw.x`) &rarr; NSCF &rarr; Wannier90 &rarr; DFPT (`ph.x`) &rarr; `qe2pert.x`, producing `Si_epr.h5` (e-ph in Wannier gauge for PERTURBO) | [View trace &rarr;](https://lbkhoa2797.github.io/Oitini/generate_Si_epr.html) |
+| **CrX₃ Curie-temperature trends** | Retrieved from the arXiv corpus, reasoned over the halide series, produced a cited comparison | [View trace &rarr;](https://lbkhoa2797.github.io/oitini/CrX3_Tc_trends.html) |
+| **Silicon electron&ndash;phonon database** | SCF (`pw.x`) &rarr; NSCF &rarr; Wannier90 &rarr; DFPT (`ph.x`) &rarr; `qe2pert.x`, producing `Si_epr.h5` (e-ph in Wannier gauge for PERTURBO) | [View trace &rarr;](https://lbkhoa2797.github.io/oitini/generate_Si_epr.html) |
 
 ## Quickstart
 
