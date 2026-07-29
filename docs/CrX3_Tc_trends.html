@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Trace · e1783e8a</title>
+
+<style>
+  :root {
+    --bg:        #faf9f7;
+    --bg2:       #ffffff;
+    --bg3:       #f0ede8;
+    --border:    #ccc5bb;
+    --text:      #1a1714;
+    --dim:       #5a534e;
+    --accent:    #b06020;
+    --gold:      #8f4d18;
+    --lavender:  #4e3080;
+    --sage:      #165c2e;
+    --peach:     #962e10;
+    --mint:      #5e3e08;
+    --badge-bg:  #e8e2da;
+    --thought-bg: rgba(78,48,128,.06);
+    --sage-bg:   rgba(22,92,46,.08);
+    --sage-border: rgba(22,92,46,.2);
+    --peach-bg:  rgba(150,46,16,.08);
+    --peach-border: rgba(150,46,16,.2);
+    --mint-border: rgba(94,62,8,.2);
+    --jk: #1a4f8a;
+    --js: #1a5c2e;
+    --jn: #7a4800;
+    --jb: #8a2010;
+    --radius:    8px;
+    --mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+    --sans: system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    padding: 32px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .trace-header {
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    animation: fadeSlide .4s ease both;
+  }
+  .trace-header h1 {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: .03em;
+    margin-bottom: 8px;
+  }
+  .meta-grid {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .meta-item { color: var(--dim); font-size: 11px; }
+  .meta-item span { color: var(--text); }
+  .prompt-box {
+    background: var(--bg3);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .prompt-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* ── Steps ── */
+  .step {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    margin-bottom: 18px;
+    overflow: hidden;
+    animation: fadeSlide .4s ease both;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-num {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: .05em;
+  }
+  .stop-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--badge-bg);
+    color: var(--dim);
+    letter-spacing: .06em;
+  }
+  .chevron {
+    margin-left: auto;
+    color: var(--dim);
+    transition: transform .2s;
+    font-size: 11px;
+  }
+  .step.collapsed .chevron { transform: rotate(-90deg); }
+  .step.collapsed .step-body { display: none; }
+  .step-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Thoughts ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+  .thoughts .section-label { color: var(--lavender); }
+  .thought-text {
+    background: var(--thought-bg);
+    border-left: 3px solid var(--lavender);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 9px 12px;
+    color: var(--lavender);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12.5px;
+  }
+
+  /* ── Tool calls / results ── */
+  .tools-grid { display: flex; flex-direction: column; gap: 10px; }
+
+  .tool-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .tool-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .tool-call .tool-card-header  { background: var(--sage-bg);  color: var(--sage);  border-bottom: 1px solid var(--sage-border); }
+  .tool-result .tool-card-header { background: var(--peach-bg); color: var(--peach); border-bottom: 1px solid var(--peach-border); }
+
+  .tool-id { font-size: 10px; color: var(--dim); margin-left: auto; font-weight: 400; }
+  .tool-body {
+    padding: 10px 12px;
+    background: var(--bg3);
+  }
+  pre.json {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.55;
+  }
+  /* Minimal JSON syntax highlight */
+  .jk { color: var(--jk); }   /* key    */
+  .js { color: var(--js); }   /* string */
+  .jn { color: var(--jn); }   /* number */
+  .jb { color: var(--jb); }   /* bool/null */
+
+  /* ── Final answer ── */
+  .final-answer {
+    border: 1px solid var(--mint-border);
+    border-top: 3px solid var(--mint);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    padding: 20px 24px;
+    margin-top: 8px;
+    animation: fadeSlide .4s ease both;
+  }
+  .final-answer .section-label { color: var(--mint); font-size: 11px; margin-bottom: 10px; }
+  .final-answer-text {
+    color: var(--mint);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.75;
+    font-size: 13px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    color: var(--dim);
+    font-size: 11px;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0);   }
+  }
+</style>
+</head>
+<body>
+
+
+<div class="trace-header">
+  <h1>⬡ ReAct Agent Trace &nbsp;·&nbsp; e1783e8a</h1>
+  <div class="meta-grid">
+    <div class="meta-item">Model <span>claude-sonnet-4-6</span></div>
+    <div class="meta-item">Started <span>2026-07-07 21:13:31</span></div>
+    <div class="meta-item">Elapsed <span>87.25s</span></div>
+  </div>
+  <div class="prompt-label">User Prompt</div>
+  <div class="prompt-box">Compare the Curie temperature of CrX3 family. Explain the trend and cite relevant literatures</div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 0</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">I&#x27;ll search the literature for Curie temperatures of the CrX₃ family (X = F, Cl, Br, I) and also look up their materials properties simultaneously.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (5)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;literature_search
+    <span class="tool-id">toolu_013YVCDqz1QQZ3eP3zTKKY5N</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;query&quot;</span>: <span class="js">&quot;Curie temperature CrX3 chromium trihalide CrF3 CrCl3 CrBr3 CrI3&quot;</span>,
+  <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+  <span class="jk">&quot;top_k&quot;</span>: <span class="jn">8</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;query_materials_project
+    <span class="tool-id">toolu_012SiMwQPbWkhFX4QK9X4oNd</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrI3&quot;</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;query_materials_project
+    <span class="tool-id">toolu_01GWngEUe8pftreoiChAMyVL</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrBr3&quot;</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;query_materials_project
+    <span class="tool-id">toolu_01FpVdMDoYQXt5T3sE1jy4TF</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrCl3&quot;</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;query_materials_project
+    <span class="tool-id">toolu_01QJMHE1Gs5rrPQ2CFMjJ1xZ</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrF3&quot;</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (5)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 literature_search
+    <span class="tool-id">toolu_013YVCDqz1QQZ3eP3zTKKY5N</span>
+  </div>
+  <div class="tool-body"><pre class="json">[
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0409403v1::c0005&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0409403v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Low temperature ferromagnetic properties of the diluted magnetic semiconductor Sb2-xCrxTe3&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2004</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;, as expected from the onset of long-range ferromagnetic order. One can see that the resistivity peak ρ T occurs at the same temperature as the point of inflection in M ( T ), and this correspondence will serve to determine the Curie temperature in our study. The inset to Fig. 2 shows a plot of TC as a function of chromium content, x . The linear dependence of TC on x is expected for diluted magnetic semiconductors [22]. Our lowest temperature of 1.8 K was not low enough to determine TC for two specimens with x = 0.014, and these samples did not display measurable hysteresis in the M ( H ) curves. From the high field saturation magnetization at 2 K ( Msat ), we have estimated the number of Bohr magnetons ( B µ = 9.27 × 10 -21 emu) per Cr ion in the ferromagnetic state. These values ( Msat / N where N is the number of Cr atoms per gram of sample as obtained from the EMPA value of x ) were calculated to be 3.5 B µ , 3.10 B µ , 3.12 B µ , and 2.98 B µ for x = 0.031, 0.047, 0.069, and 0.095, respectively. The relative error in the microprobe results, which is the primary source of error in the determination of the Cr magnetic moment, decreased from &amp;gt;10% for the smallest Cr concentrations to &amp;lt;3% for the highest. Within this error, the Cr magnetic moment is close to 3 B µ , or to a spin-only value of S = 3/2 per Cr. One expects 3 B µ from the 3d 3 electron configuration for Cr 3+ if the chromium substitutes for antimony in the lattice and provided the orbital component is quenched. A number of chromium telluride compounds (CrTe, Cr3Te4, Cr2Te3) are known to display ferromagnetic behavior with saturation moments near 2.0 - 2.7 B µ per Cr, though with Curie temperatures between 180 and 340 K [23], differentiating the present results from the magnetic signal due to potential unwanted impurity phases. Our measurements of M ( T ) also allow us to obtain the exchange energy J associated with the ferromagnetic state. We can understand the low-temperature limit of M ( T ) within a standard three-dimensional spin wave model [24] which predicts M ( T ) = M0 - 0.117 B µ ( kBT/2SJd 2 ) 3/2 . Here, M0 is the zero temperature magnetization and d is the distance between Cr ions. According to the fit to the data in Fig. 2 (solid lines) at temperatures well below TC , J is computed to be 0.04 and 0.12 meV for the x =&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.805</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;0811-1225v2::c0006&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;0811.1225v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Electrically driven magnetization of diluted magnetic semiconductors actuated by Overhauser effect&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2008</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The eqs. 3, 5, 6, 2 and 1, are solved sequentially and self-consistently (fig. 3) to calculate the Mn spin polarization and hole polarization in figs. 1(b) and 1(c) respectively. Magnetization of the Mn and holes inside channel material (Ga 1 -x Mn x As) is then calculated from: M = 2 M 0 〈 S Mn z 〉 / 5 and m = 2 m 0 〈 S h z 〉 respectively, where the corresponding saturation magnetizations, M 0 = 5 g Mn µ B n Mn / 2 and m o = g h µ B n h / 2. The iterative loop in fig. 3 embodies a positive feedback loop that gives rise to equilibrium magnetization below Curie temperature in such materials. Such positive feedback in combination with Overhauser effect (fig. 3) is what gives rise to non-equilibrium magnetization even above Curie temperature. The results of the calculations, shown in figs. 1(b) and 1(c), use realistic parameter values [26] and gives equilibrium magnetization characteristics (calculated by setting µ ↑ -µ ↓ = 0) similar to experimental observations [28, 29]. Two sets of calculations were performed: 1) calculations for different values of µ ↑ -µ ↓ by setting B ext = 0, whose results are shown in the main plots of figs. 1(b) and 1(c), and 2) calculations for different values of B ext by setting µ ↑ -µ ↓ = 0 (equilibrium), whose results are shown in the inset plots of figs. 1(b) and 1(c). By comparing the main plots in figs. 1(b) and 1(c) with their corresponding inset plots, we observe that the values of µ ↑ -µ ↓ corresponding to the curves in the main plots maintain a proportionality relation with the values of B ext corresponding to the similar curves in the corresponding inset plots (0 . 1meV: 1 . 0meV: 10 . 0meV= 1T: 10T: 100T). Such proportionality relation is, by no means, a coincidence and is maintained in the calculations done with different values of J , n Mn , and n h (results not shown in this paper). Although the Curie temperature, the saturation magnetization and the shapes of the magnetization vs. temperature curves are different for different values of J , n Mn , and n h due to the dependence of the exchange field on these parameters (eqs. 1 and 5) the strength of the effect remains the same, i.e. the magnetizations for a quasi-Fermi level splitting of 0 . 1meV without any external magnetic field, when alternative Mn spin relaxation paths can be neglected, is equal to the magnetizations for an external magnetic field of 1T at equilibrium. As a result, changing J , n Mn , and&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.68</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0409403v1::c0006&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0409403v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Low temperature ferromagnetic properties of the diluted magnetic semiconductor Sb2-xCrxTe3&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2004</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;2 ) 3/2 . Here, M0 is the zero temperature magnetization and d is the distance between Cr ions. According to the fit to the data in Fig. 2 (solid lines) at temperatures well below TC , J is computed to be 0.04 and 0.12 meV for the x = 0.047 and x = 0.095 specimens, respectively, which is comparable to GaMnAs thin films [25] with similar magnetic impurity concentrations. In the three-dimensional Heisenberg model with nearest-neighbor interactions, the Curie temperature is found to be TC = 2 JS ( S +1) z /3 kB where z is the number of nearest-neighbor spins. For S we take 3/2, and we somewhat arbitrarily choose z = 6 (cubic lattice of Cr ions) although its magnitude is not well defined in this random system. The open symbols in the inset to Fig. 2 show the excellent agreement to the data from the point of inflection in M ( T ) Above TC , the magnetic susceptibility χ has paramagnetic behavior for Cr-doped specimens. Antimony telluride is diamagnetic [26] and we measure a temperature independent value of χ = -3.8 x 10 -7 cm 3 /g. For temperatures above 100 K, the Sb2xCrxTe3 data fit well to a Curie-Weiss law of the form ( ) 0 χ θ χ + -= CW T C T where C is the Curie constant, CW θ is the paramagnetic Curie temperature, and 0 χ is a temperature independent term to account for the diamagnetic host and any Pauli paramagnetism contribution. The fitting parameters are given in Table I. Figure 3 displays the temperature dependence of the quantity ( χ -0 χ ) -1 . Calculations of the effective Bohr magneton number peff were made via the equation C = N peff 2 B µ 2 /3 kB where N is again the number of Cr ions per gram of sample, B µ is the Bohr magneton number, and kB is Boltzmann&#x27;s constant. Values of peff ( ) 1 + = J J g are close to the spin only value for Cr 3+ ( L = 0, S = 3/2) of 3.87 B µ taking the Landé g -factor to be g = 2, in agreement with low temperature saturation moments that also indicate S ≅ 3/2. We note that the CurieWeiss temperatures calculated from the fit are larger than the observed Curie temperatures determined by M (T) and ρ T data, though the linearly increasing trend with x is qualitatively the same. If we include the data down to temperatures of 50 K in the Curie-Weiss analysis, we obtain a somewhat poorer fit; however, Curie-Weiss temperatures are closer to the respective TC values and calculated&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.667</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1203-3044v2::c0009&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1203.3044v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Interactions in Ge/1-x/Cr/x/Te Semimagnetic Semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2012</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;magnetic properties need to be obtained in order to fully justify the above interpretation. The dc magnetometery was also used to study magnetization M vs. T of the Ge 1 -x Cr x Te crystals. At first, the temperature dependence of the magnetization was measured in the range of low magnetic field H =20 -200 Oe using a SQUID magnetometer. Measurements were performed over wide temperature range T =2 -300 K in two steps, i.e. with the sample cooled in the presence (FC) and the absence (ZFC) of the external magnetic field. The contribution of the sample holder was subtracted from the experimental data. The results showed that in the range of magnetic fields we used the isothermal magnetization M ( H ) curves were nearly linear allowing us to calculate the dc magnetic susceptibility χ dc = ∂M / ∂H and its changes with temperature for each Ge 1 -x Cr x Te sample. The temperature dependence of both ZFC and FC magnetic susceptibility for a few selected samples with different chemical content x are gathered in Fig. 3. The ZFC χ dc ( T ) curves showed different behavior in the case of Ge 1 -x Cr x Te samples with low ( x&amp;lt; 0.03) and high (0.03 &amp;lt;x&amp;lt; 0.062) chromium content, in agreement with the previously measured ac susceptibility. It should be noted, that in the case of spin-glass samples ( x&amp;lt; 0.03) the ZFC χ dc ( T ) curve may be approximated to zero for T → 0. In the case of ferromagnetic samples ( x&amp;gt; 0.03) the separation between ZFC and FC curves was a decreasing function of chromium content. The features presented above are additional proofs, consistent with the ac susceptibility results, that spin-glass ( x&amp;lt; 0.03) and ferromagnetic ( x&amp;gt; 0.03) magnetic order was observed in the case of the studied alloy. The critical behavior of the temperature dependencies of ZFC M ( T ) curves is used to determine the Curie temperature, T C , for each of the studied Ge 1 -x Cr x Te samples. We 185 determined the values of T C from the position of the inflection point on the low-field magne186 tization curves, M ( T ). The values of the estimated critical temperatures for all the studied 187 Ge 1 -x Cr x Te samples, including our earlier estimations of the spin-glass transition tempera188 tures T SG for samples with x&amp;lt; 0.026 (see Ref. 16) are gathered in Fig. 4. It should be noted, 189 that the values of both T SG and T C estimated from the dynamic susceptibility results were 190 close to those estimated with the use of static magnetization results. The&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.642</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0203404v1::c0014&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0203404v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Impurity-Semiconductor Band Hybridization Effects on the Critical Temperature of Diluted Magnetic Semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2002</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;the values of the parameters. For instance, in the case of t =0.85 eV , J =3 t , x =10%, and p =0.7%, the critical temperature varies between 80K for W = J , and 350 K for W =0. This range would agree rather well with experimental data, assuming values of W near J . Given the oversimplified nature of our model, this comparison with experiments cannot be taken too far away. In any case, our results indicate clearly the relevant role of value of W on the magnetic transition: decreasing its value, if possible experimentally, would increase considerably the Curie temperature.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.612</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0409403v1::c0004&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0409403v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Low temperature ferromagnetic properties of the diluted magnetic semiconductor Sb2-xCrxTe3&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2004</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Figure 1 displays the temperature dependence of the in-plane, zero-field electrical resistivity ρ (current ⊥ c-axis) and Hall coefficient RH (obtained in a magnetic field of +/- 1 T) of the Sb2-xCrxTe3 single crystals. The in-plane electrical resistivity of pure Sb2Te3 is dominated by hole conduction and has a metallic temperature dependence characteristic of a degenerately doped semiconductor. Hall concentrations, p = 1/ eRH where e is the elementary charge, of 1 × 10 20 cm -3 are typical of undoped Sb2Te3 and are ascribed to the presence of a large number of native antisite defects [16]. As the concentration of Cr in the lattice increases, the electrical resistance increases smoothly over the entire temperature range. The Hall coefficient has a non-monotonic behavior as a function of x , with RH first increasing by about 40% followed by a shallow decrease with increasing x . The inset to Fig. 1(a) shows the room temperature Hall concentration as a function of Cr content (filled symbols). This data suggests that the concentration of holes is not strongly affected by the presence of Cr. One possible explanation for the initial suppression of the Hall concentration is that the presence of low concentrations of Cr affect the concentration of native defects [17,18]. The transport data are in agreement with Ref.15 in which the temperature range above 100 K was explored. At low temperatures, the resistivity data for Cr content greater than x = 0.014 display a maximum signaling a paramagnetic-ferromagnetic phase transition. Magnetic semiconductors commonly exhibit a maximum in ρ near their Curie temperature [19], and this can be understood on theoretical grounds in terms of a model that combines scattering by magnetic impurities and magnetic fluctuations [20,21]. Similar features have been observed in other diluted magnetic semiconductors such as Ga1-xMnxAs [21], In1-xMnxSb [4], and Sb2-xVxTe3 [12]. Hall coefficient data also reveal an upturn at low temperature occurring at the same temperature that the ρ data display a peak. This behavior is caused by a strong anomalous component in the transverse resistivity, which will be further elucidated below. Representative magnetization data for temperatures less than 50 K, together with the corresponding zero-field resistivities, are shown in Fig. 2 for Sb2-xCrxTe3 with x = 0.047 and x = 0.095. The data were collected while cooling in a field of 0.1 T oriented parallel to the c-axis. The magnetization M displays a sharp rise at TC , as expected from the onset of long-range ferromagnetic order. One can see that the resistivity peak ρ T occurs at the same temperature as the point of inflection in M ( T ), and this correspondence will serve to determine the Curie temperature in our study. The inset to&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.594</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1411-4536v1::c0004&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1411.4536v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;(Sr,Na)(Zn,Mn)2As2: A new diluted ferromagnetic semiconductor with the hexagonal CaAl2Si2 type structure&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2014</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;As shown in Fig. 1(a), all of the main peaks in the X-ray diffraction patterns can be indexed by the hexagonal CaAl 2 Si 2 type structure with the space group P-3m1, excluding a few minor peaks of nonmagnetic Sr3As4 and Zn3As2 impurities. Although the crystal structure of the present material is very different from those of the recently reported &#x27;111&#x27;, &#x27;122&#x27; and &#x27;1111&#x27; DMS materials 6, 16~19 , all of these systems have a layered structure and share the common feature of [ZnAs4] tetrahedral coordination. Here the [ZnAs4] tetrahedron is not regular, since the Zn-As bond along the c-axis (L c ) is longer than the other three Zn-As bonds (L ab ) and the As-Zn-As bond angle α is bigger than β , as shown in Fig. 1(b). As seen in Fig. 1(c), the lattice parameters of (Sr 0.9 Na0.1 )(Zn1-x Mnx)2As2 for x= 0, 0.05, 0.1, 0.15 and 0.2 increase monotonically with x , indicative of successful chemical doping. The parent compound SrZn 2As2 has lattice parameters a = 4.223 Å and c = 7.268 Å. The isovalent doping of Mn 2+ for Zn 2+ allows the synthesis of chemically stable bulk crystals of (Sr,Na)(Zn1-xMnx)2As2for x up to 0.2. The temperature-dependent magnetization M(T) for (Sr 1-yNay)(Zn1-xMnx)2As2 specimens are displayed in Fig.2(a). Clear signatures of ferromagnetism are observed. The solid symbols in Fig. 2(a) show M(T) for (Sr 0.9 Na0.1 )(Zn1-xMnx)2As2 with x = 0.05, 0.1, 0.15, and 0.2. The Curie temperature TC rises with increasing Mn concentration, reaching a maximum of 21 K. The empty symbols show TC of (Sr 1-y Nay)(Zn0.85 Mn0.15) 2 As2 as function of Na concentration y . The maximum TC is 24K for optimal Na doping ( y = 0.2). Further Na doping causes the Curie temperature to gradually decrease. Above TC , the samples are paramagnetic and the magnetic susceptibility χ (T) (Fig. 2(a) and Fig.2(b)) can be fit with the Curie-Weiss formula ( χ -χ 0 ) -1 = (T -θ )/ C , quite well in high temperature region (30K ~ 300 K) as shown in Fig. 2(a). In this formula, χ 0 is a temperature-independent paramagnetic term that depends on the orbital contribution of the material 20 , C is the Curie constant, and θ is the Weiss temperature. The positive value of θ for (Sr 1-y Nay)(Zn0.8 Mn0.2)2 As2 (Fig. 2(a)) indicates a ferromagnetic interaction between Mn 2+ ions. The effective paramagnetic moment ( Meff ) obtained from the Curie constant (open purple circles in Fig. 2(b)) decreases with increasing Mn doping. A similar trend was also found in other systems doped with magnetic ions 6,8,11 . Meff of the specimen (Sr 0.9 Na0.1 )(Zn0.95 Mn0.05) 2&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.545</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1612-02517v1::c0003&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1612.02517v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;EMP Lasing from Mn doped lead bromide perovskites nanorods&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2016</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;results&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The CH3NH3PbBr3 NRs were obtained by using solution growth method described in the methods section. The SEM morphology images of as-prepared NRs and Mn doped NRs are shown in Figure 1a, c respectively. Figure 1b is the magnification image of NR. The three images show that the surfaces of NRs are clean and smooth. The length of as-grown NRs is about 50-100 μ m(?). The elementary composition of the NRs in Figure 1a was C, N, Br and Pb according to the energy dispersive X-ray (EDX) analysis (Figure 1e). The element ratio of Br to Pb is 2.9, quite close to stoichiometry ratio of 3. Figure 1d presents the XRD pattern of these NRs, which confirms their crystal phase and lattice quality. Figure 1f shows the EDS profile of CH3NH3PbBr3:Mn NRs, in which the Mn concentration is about 0.21%. In the growth process the manganese concentration tuned from 0.21 to 7.35%(atomic %) can be identified by EDX. According to the XRD pattern, no phase separation of NRs is observed for manganese concentration up to 7.35%. Figure 1. (a) SEM image of as-grown CH3NH3PbBr3 NRs. (b) Magnification image of NR. (c) SEM image of as-grown Mn 2+ doped CH3NH3PbBr3 NRs. (d) XRD pattern of the as grown NRs. (e) EDX profile measured from one NR. (f) EDX profile of Mn 2+ doped CH3NH3PbBr3. Inset is the relevant element ratio. &lt;!-- image --&gt; Magnetic response of Mn-doped CH3NH3PbBr3. Single Mn-doped CH3NH3PbBr3 crystal of several μ m size could be grown, whose optical image of as-prepared one single-crystal shown in Figure 2a inset. Figure 2a shows their magnetization hysteresis loop line of CH3NH3PbBr3:Mn at 0.67% Mn doping as a function of the applied magnetic field (H). The inset is the magnified area near zero magnetic fields. A good magnetic hysteresis loops was shown in M-H curves (-1000~1000Oe), indicating the ferromagnetic behavior of these single-crystal powder. To determine its Curie temperature, we also measured the M-T curve by applying a 7T magnetic field by SQUID, as shown in Figure 2b. The magnetization slowly decreases with increasing temperature, cross point at Curie temperature has not seen even up to room temperature. Figure 2. (a) Hysteresis loops (M vs H) of doped CH3NH3PbBr3 single-crystal measured at 300K. Inset is the CH3NH3PbBr3 single-crystal in the vial. (b) The relationship between Magnetization and Temperature of CH3NH3PbBr3 single-crystal. &lt;!-- image --&gt; Figure 3a and Figure 3b shows respective room-temperature PL spectra of pure single CH3NH3PbBr3 NR and Mn-doped CH3NH3PbBr3 NR excited by 405 nm line of a CW semiconductor laser, its PL image is shown in fig.1S. A very strong band-edge emission band centered at 539 nm was obtained for CH3NH3PbBr3 NR (Figure 3a), while two emission peaks at&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.537</span>
+  }
+]</pre></div>
+</div>
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 query_materials_project
+    <span class="tool-id">toolu_012SiMwQPbWkhFX4QK9X4oNd</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;material_id&quot;</span>: <span class="js">&quot;mp-1213805&quot;</span>,
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrI3&quot;</span>,
+  <span class="jk">&quot;space_group&quot;</span>: <span class="js">&quot;P3_112&quot;</span>,
+  <span class="jk">&quot;band_gap_eV&quot;</span>: <span class="jn">1.3467000000000002</span>,
+  <span class="jk">&quot;is_magnetic&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;magnetic_ordering&quot;</span>: <span class="js">&quot;Unknown&quot;</span>,
+  <span class="jk">&quot;total_magnetization_uB&quot;</span>: <span class="jn">18.0000009</span>,
+  <span class="jk">&quot;energy_above_hull_eV_per_atom&quot;</span>: <span class="jn">0.0</span>,
+  <span class="jk">&quot;formation_energy_eV_per_atom&quot;</span>: <span class="jn">-0.7230418558333346</span>,
+  <span class="jk">&quot;nsites&quot;</span>: <span class="jn">24</span>,
+  <span class="jk">&quot;density_g_cm3&quot;</span>: <span class="jn">4.939083561368253</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 query_materials_project
+    <span class="tool-id">toolu_01GWngEUe8pftreoiChAMyVL</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;material_id&quot;</span>: <span class="js">&quot;mp-27734&quot;</span>,
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrBr3&quot;</span>,
+  <span class="jk">&quot;space_group&quot;</span>: <span class="js">&quot;R-3&quot;</span>,
+  <span class="jk">&quot;band_gap_eV&quot;</span>: <span class="jn">1.2762</span>,
+  <span class="jk">&quot;is_magnetic&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;magnetic_ordering&quot;</span>: <span class="js">&quot;Unknown&quot;</span>,
+  <span class="jk">&quot;total_magnetization_uB&quot;</span>: <span class="jn">17.9999994</span>,
+  <span class="jk">&quot;energy_above_hull_eV_per_atom&quot;</span>: <span class="jn">0.0</span>,
+  <span class="jk">&quot;formation_energy_eV_per_atom&quot;</span>: <span class="jn">-1.2174041200000003</span>,
+  <span class="jk">&quot;nsites&quot;</span>: <span class="jn">24</span>,
+  <span class="jk">&quot;density_g_cm3&quot;</span>: <span class="jn">4.353329395311556</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 query_materials_project
+    <span class="tool-id">toolu_01FpVdMDoYQXt5T3sE1jy4TF</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;material_id&quot;</span>: <span class="js">&quot;mp-567504&quot;</span>,
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrCl3&quot;</span>,
+  <span class="jk">&quot;space_group&quot;</span>: <span class="js">&quot;R-3&quot;</span>,
+  <span class="jk">&quot;band_gap_eV&quot;</span>: <span class="jn">0.20579999999999998</span>,
+  <span class="jk">&quot;is_magnetic&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;magnetic_ordering&quot;</span>: <span class="js">&quot;Unknown&quot;</span>,
+  <span class="jk">&quot;total_magnetization_uB&quot;</span>: <span class="jn">6.0</span>,
+  <span class="jk">&quot;energy_above_hull_eV_per_atom&quot;</span>: <span class="jn">0.0</span>,
+  <span class="jk">&quot;formation_energy_eV_per_atom&quot;</span>: <span class="jn">-1.5941897137499992</span>,
+  <span class="jk">&quot;nsites&quot;</span>: <span class="jn">8</span>,
+  <span class="jk">&quot;density_g_cm3&quot;</span>: <span class="jn">2.832861233149497</span>
+}</pre></div>
+</div>
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 query_materials_project
+    <span class="tool-id">toolu_01QJMHE1Gs5rrPQ2CFMjJ1xZ</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;material_id&quot;</span>: <span class="js">&quot;mp-560338&quot;</span>,
+  <span class="jk">&quot;formula&quot;</span>: <span class="js">&quot;CrF3&quot;</span>,
+  <span class="jk">&quot;space_group&quot;</span>: <span class="js">&quot;R-3c&quot;</span>,
+  <span class="jk">&quot;band_gap_eV&quot;</span>: <span class="jn">3.0453</span>,
+  <span class="jk">&quot;is_magnetic&quot;</span>: <span class="jb">false</span>,
+  <span class="jk">&quot;magnetic_ordering&quot;</span>: <span class="js">&quot;Unknown&quot;</span>,
+  <span class="jk">&quot;total_magnetization_uB&quot;</span>: <span class="jn">5.9999997</span>,
+  <span class="jk">&quot;energy_above_hull_eV_per_atom&quot;</span>: <span class="jn">0.0</span>,
+  <span class="jk">&quot;formation_energy_eV_per_atom&quot;</span>: <span class="jn">-3.0394761100000007</span>,
+  <span class="jk">&quot;nsites&quot;</span>: <span class="jn">8</span>,
+  <span class="jk">&quot;density_g_cm3&quot;</span>: <span class="jn">3.9089680638815683</span>
+}</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 1</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">The initial literature search returned results about diluted magnetic semiconductors, not the CrX₃ family directly. Let me do a more targeted search focused on exchange interactions and magnetic ordering in chromium trihalides.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;literature_search
+    <span class="tool-id">toolu_017WayQ79uADG4WskMv6J3wi</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;query&quot;</span>: <span class="js">&quot;magnetic exchange interaction superexchange CrI3 CrBr3 CrCl3 ferromagnetic ordering mechanism&quot;</span>,
+  <span class="jk">&quot;top_k&quot;</span>: <span class="jn">8</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 literature_search
+    <span class="tool-id">toolu_017WayQ79uADG4WskMv6J3wi</span>
+  </div>
+  <div class="tool-body"><pre class="json">[
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0605242v1::c0009&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0605242v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Superexchange in Dilute Magnetic Dielectrics: Application to (Ti,Co)O_2&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2006</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;the second term in this Hamiltonian describe the hybridization of the Co impurity d -states with those in the cationic sublattice. Apparently one may neglect the hybridization V cµ in comparison with V jνµ , and retain in this term only the hybridization V jvµ with the oxygen-related p-states in the valence band. We return now to are the energy level scheme Fig. 1 substantiating the charge transfer reaction (3). It is emphasized that we compare the one-electron energy levels of the oxygen vacancy with the corresponding levels of Co impurities in different charge states. These levels are defined as addition energies (2) corresponding to recharging processes Co m + / Co ( m -1)+ . These energies may be taken, i.g. from Ref. 20. Hybridization V jνµ allows for an electron transfer of the two electrons from the vacancy level first to the level ε d (3+ / 4+) and then to the level ε d (2 + / 3+) and formation of the complex defect [V 2+ O Co 2+ ] j with seven electrons occupying the 3d-shell of the ion Co 2+ and empty extended V O -related states. Indirect exchange interaction arises when the wave functions of two complexes centered in the cells j and i overlap. It is clear that the overlap is controlled by the radius of extended V O -related state. An obvious interaction mechanism is the superexchange, where two magnetic impurities exchange electrons via empty vacancy levels. It will be shown below that this interaction favors ferromagnetic ordering in the system. The simplest way to construct an effective superexchange interaction operator is to project the two-impurity Hamiltonian H ji = H dj + H di + H ′ hji + H hdj + H hdi onto the subspace 〈 ji | . . . | ji 〉 2+ with fixed Co 2+ configurations of the two magnetic ions and also project out the charged impurity states Co 3+ , which arise due to the hybridization H hdj + H hdi . Here H ′ hji is the host Hamiltonian with two oxygen vacancies in the cells j, i . Then the fourth order term in the impurity-vacancy hybridization &lt;!-- formula-not-decoded --&gt; gives the effective exchange vertex, represented graphically in Fig. 2. The resolvents, which FIG. 2: Diagrammatic representation of the superexchange interaction between two magnetic impurities in charge states d n i and d n j via the intermediate states d n -1 i and d n -1 j and empty levels pσ (see text for further explanation). &lt;!-- image --&gt; appear in (6) correspond to the ground state E 0 of the non-hybridized Hamiltonian H 0 ji = H dj +&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.926</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0102502v1::c0007&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0102502v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;A new class of magnetic materials: Sr2FeMoO6 and related compounds&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2001</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;delocalised electrons in the system and the localised electrons at each Fe site will lead to a ferromagnetic ordering of the Fe sublattice. Thus, understanding the ferromagnetic ordering of Fe ions in Sr 2 FeMoO 6 is nothing but understanding the nature and origin of the coupling of the mobile electrons and the localised ones in this compound. Since intraatomic Hund&#x27;s interaction strength cannot provide this coupling as already pointed out, we have to look for another mechanism to explain the occurrence of such a high T c in this compound. In some reports, it has been implicitly assumed [30] that an antiferromagnetic coupling between the Fe and the Mo sites via superexchange is responsible for the observed magnetic structure. This does not appear to be a very plausible scenario, since a superexchange mechanism coupling the Fe site to the delocalised and highly degenerate (five-fold degeneracy ignoring crystal-field effects) Mo d states will, at best, be very weak, therefore, not compatible with the unusually high ordering temperature. Moreover, it should be noted that such a superexchange mechanism requires a perfectly ordered double perovskite structure, ensuring Fe-OMo-O-Fe 180 o interactions to give rise to a ferromagnetic coupling of the Fe sublattice. It would also suggest that Fe-O-Fe bonds, if present, will be antiferromagnetically coupled. However, recent band structure calculations using supercells to simulate mis-site disorder between Fe and Mo sites [*22] clearly show that Fe and Mo sites are invariably coupled antiferromagnetically, driving a ferromagnetic order in the Fe even for Fe-O-Fe bonds in this system. This observation effectively eliminates the possibility of superexchange interaction being the driving force for the magnetic ordering in this compound; I shall discuss the results pertaining to the disorder effect in some more detail in a later section. These considerations also suggest that this compound should not be considered as a ferrimagnet, but a ferromagnet.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.813</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1907-13282v1::c0009&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1907.13282v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Carrier free long-range magnetism in Mo doped one quintuple layer Bi2Te3 and Sb2Te3&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2019</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Spin density can provide hints for clarifying the magnetic mechanism. According to the spin density of Mo doped Bi2Te3 (Fig. 6), we found that the spin of Mod is antiparallel to that Tep .  Further,  the  hybridized  state  formed  by  Bisp and Tep at  the  stepping  stone  site [26]  is magnetized, and this hybridized state couples with the second Mo dopant. The s -p network provides a medium for Mo-Mo interaction. This is the first system other than Cr doped ones [26] that verified the existence of ferromagnetism mediated by stepping stone mechanism.\n\nFig. 6. Spin density of 7th-NN configuration in different magnetic states, (a)AFM state and (b) FM state. The sp antibonding state is marked by the arrow.\n\n&lt;!-- image --&gt;\n\nIn magnetic doped TI, various mechanism can mediate the long range ferromagnetism, such as  RKKY [37],  van  vleck  mechanism [38],  double  or  superexchange  mechanism [18], p -network mediated mechanism [39], and stepping stone mechanism [26]. In Mo doped Bi2Te3 and Sb2Te3, no impurity state was found within the band gap, therefore, the possibility of RKKY is excluded. According to van vleck mechanism, SOC is essential to realize long range magnetic coupling [14]. However, our calculations found that the magnetic coupling strength remains without SOC. Double exchange mechanism involve difference valence of magnetic ions, which is absence in our system. For superexchange or super-superexchange [40], the interaction is usually short ranged. However, we found that magnetic interaction is still robust in 7th-NN configurations  (about  10Å). Above  analysis  indicates  that  the  stepping  stone  mechanism  is likely to play the dominant role.\n\nIn addition, it was suggested that the magnetic interaction can be mediated by the topological surface state via RKKY like mechanism [41]. However, our present calculation is based on 1QL model, in which the band gap is clean without topological surface states because of the strong coupling between the top and bottom surface states of the thin film [42]. Therefore, the role of topological surface states for the long-range magnetic mechanism is absent here. Further studies based  on  5QL  model  or  thicker  thin  film  can  be  interesting  and  may  clarify  the  role  of topological surface state on magnetism, which is out of the scope of this paper.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.767</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0307573v1::c0002&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0307573v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Spin order manipulations in nanostructures of II-VI ferromagnetic semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2003</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Owing to short-range superexchange interactions, the spin-spin coupling is merely antiferromagnetic in II-VI DMS. However, a net ferromagnetic superexchange was predicted for Cr[14] and V-based [15] II-VI DMS, a conclusion independent of assumptions concerning the direction of Jahn-Teller distortion and tight-binding parameter values, as shown in Fig. 2. A ferromagnetic ground state in these systems is expected also from more recent ab initio computations [22] which suggest, however, that double exchange rather than superexchange is involved.\n\nIn the initially studied samples [16,17], the Cr concentration was too low to tell the character of spin-spin interactions. However, a more recent work on (Zn,Cr)Te [18,19,20], has lead to the observation ferromagnetism by both direct magnetization measurements and magnetic circular dichroism (MCD). According to MCD re- sults presented in Fig. 3, ferromagnetism persists up to room temperature in a sample containing 20% of Cr. Since no electrical conductance is detected, the ferromagnetic double exchange [22] does not appear to operate. At the same time, for the presently accepted values of the parameters, the observed magnitude of T C is too high to be explained within the superexchange scenario but by adjusting parameters within the physically acceptable range, such a scenario becomes plausible. Nonetheless, independently of the microscopic nature of ferromagnetic ordering, the large magnitude of MCD suggests possible applications of this system in photonic devices, such as Faraday optical insulators.\n\nIndications of ferromagnetism below 100 K have also been found in (Zn,Cr)Se, as shown in Fig. 4. The enhanced magnetic response has been assigned to precipitates as the apparent T C does not scale with the Cr concentration, and is close to T C of the spinel semiconductor ZnCr 2 Se 4 .\n\nFigure 3. Magnetic field dependence of magnetic circular dichroism in Zn 1 -x Cr x Te ( x = 0 . 20) film at photon energy E = 2 . 2 eV and temperature of 20 K and 293 K indicating the presence of a ferromagnetic ordering persisting up to room temperature (after Ref. [20]).\n\n&lt;!-- image --&gt;&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.762</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0605242v1::c0010&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0605242v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Superexchange in Dilute Magnetic Dielectrics: Application to (Ti,Co)O_2&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2006</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;and d n j via the intermediate states d n -1 i and d n -1 j and empty levels pσ (see text for further explanation). &lt;!-- image --&gt; appear in (6) correspond to the ground state E 0 of the non-hybridized Hamiltonian H 0 ji = H dj + H di + H ′ hji . The solid lines in this diagram stand for the definite charge and spin state of the impurity in the site i or j (Co 2+ ( d 7 ) and (Co 3+ ( d 6 ) in a given spin and orbital configuration). The vertices correspond to various terms in the hybridization Hamiltonian (5), which changes the impurity state from d 7 i to d 6 i and v.v. In the vertex V vµ an electron appears on the empty vacancy ν - orbital with the spin σ . In the vertex V aµ a hole (electron) appears in the valence (conduction) band. Yet, a similar process d 7 j → d 6 j + ν ′ σ occurs around the counterpart site j . Then the two p-electrons change their &#x27;hosts&#x27; (two dashed lines in Fig. 2), and this is the end of the superexchange process. This scheme allows one to roughly estimate the effective exchange coupling as &lt;!-- formula-not-decoded --&gt; where ∆ do is the energy of the transition (3), and D o is the characteristic energy scale of the vacancy related band under the bottom of conduction band. A similar estimate may be found, e.g. in Refs. 23, where the superexchange between singly occupied states in the 4 f -shell via empty states in conduction band was studied ( D o in that case is the conduction band width). In the case of a singly occupied shell f 1 or d 1 there is no Hund interaction in the unfilled shell. As a result antiferromagnetic part of this interaction prevails (ferromagnetic channels are blocked by the Pauli principle). 23 In our case the superexchange mechanism favors the ferromagnetic alignment of spins since the intrashell Hund interaction suppresses the exchange by the electrons with antiparallel spins (see next section). There seems to be much in common between the vacancy-related mechanism represented by Eqs. (6), (7) and the spin-polaron mechanism offered in Ref. 8. In both cases the effective radius of magnetic interaction is controlled by the extended donor states. It should be emphasized, however, that unlike the indirect exchange via the states in the donor impurity band 8 , in our case the band of vacancy states may be empty (provided all the electrons from the vacancy levels are captured by acceptor-like magnetic impurities), so that this mechanism may be realized&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.748</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0603846v1::c0002&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0603846v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Half-metallic diluted antiferromagnetic semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2006</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;views of the electronic structure (density of states) of Cr and Fe. (a) Cr and Fe with a ferromagnetic coupling. (b) Cr and Fe with an antiferromagnetic coupling. &lt;!-- image --&gt; We can make similar arguments for the half-metallic antiferromagnetic DMSs. It is obvious from a symmetry consideration that we need at least two different types of magnetic ions to realize a half-metallic structure. We consider two 3 d magnetic ions: one of them has less than half-filled d -electrons, for example Cr, while the other has more than half-filled d -electrons, for exmaple Fe. When the host is a II-VI compound semiconductor, a Cr ion is usually in the nominally d 4 configuration and Fe is in the nominally d 6 configuration. In this case, the electronic structures of a single Cr and Fe ion are as shown in Fig. 2 (a). The results of the coupling between the Cr and Fe ions, which can either be ferromagnetic or antiferromagnetic, are schematically shown in Fig. 3 (a) and (b). Though the ferromagnetic coupling produces a metallic band in both spin directions, the antiferromagnetic coupling realizes the half-metallic bands. With regard to the gain in the band energy, which is relevant to the coupling between ions, the band energy for antiferromagnetic coupling is larger than that of the ferromagnetic coupling. This is because the antiferromagnetic coupling produces a common band for Cr and Fe in the up spin state (we choose the metallic band as up spin). This is a basic requirement for the double exchange to occur because the double exchange is simply the hybridization between two degenerate (or nearly degenerate) local states. This situation would be ideal if each spin band was half-filled as shown in Fig. 2 (b). On the other hand, the antiferromagnetic coupling causes hybridization between energetically separated states. We may call the latter as a superexchange though it is actually ferromagnetic as opposed to the usual superexchange that is mostly the origin of antiferromagnetism. Using the same argument as that for ferromagnetic DMSs[4], the double exchange should be much stronger than the superexchange, thus causing antiferromagnetic ordering in the present case. FIG. 4: A pair of the d 4 and d 6 ions with (a) ferromagnetic coupling and (b) antiferromagnetic coupling. The black and gray arrows indicate occupied and unoccupied electron states, respectively, and the dotted arrows indicate possible electron transfer. &lt;!-- image --&gt; In the above, the mechanism that stabilizes an antiferromagnetic coupling was explained in the framework of band structure. The same mechanism can also be described in terms of many-electron states in an analogous way to that for ferromagnetic double exchange. Let us consider a pair of d 4 and d&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.743</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0605242v1::c0001&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0605242v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Superexchange in Dilute Magnetic Dielectrics: Application to (Ti,Co)O_2&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2006</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;abstract&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;We extend the model of ferromagnetic superexchange in dilute magnetic semiconductors to the ferromagnetically ordered highly insulating compounds (dilute magnetic dielectrics). The intrinsic ferromagnetism without free carriers is observed in oxygen-deficient films of anatase TiO 2 doped with transition metal impurities in cation sublattice. We suppose that ferromagnetic order arises due to superexchange between complexes [oxygen vacancies + magnetic impurities], which are stabilized by charge transfer from vacancies to impurities. The Hund rule controls the superexchange via empty vacancy related levels so that it becomes possible only for the parallel orientation of impurity magnetic moments. The percolation threshold for magnetic ordering is determined by the radius of vacancy levels, but the exchange mechanism does not require free carriers. The crucial role of the non-stoichiometry in formation of the ferromagnetism makes the Curie temperatures extremely sensitive to the methods of sample preparation.\n\n∗ Email:fleurov@post.tau.ac.il.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.712</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1909-02999v1::c0001&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1909.02999v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Families of magnetic semiconductors -- an overview&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2019</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The discovery of ferromagnetism in some europium chalcogenides and chromium spinels a half of the century ago [1] came as a surprise, since insulators typically showed antiferromagnetic or ferrimagnetic spin ordering, driven by a superexchange interaction, whereas ferromagnetism was considered a domain of metals. However, the Goodenough-Kanamori-Anderson rules indicate in which cases the superexchange can lead to ferromagnetic shortrange coupling between localized spins. This mechanism accounts e.g. for Curie temperature T C = 130K in CdCr 2 Se 4 [2] . In the case of EuO and EuS, the antiferromagnetic superexchange is overcompensated by a direct f -d ferromagnetic exchange, which results in T C = 68K and 16 K, respectively [3] .\n\nSoon after their discovery, magnetic semiconductors were found to exhibit outstanding properties, including colossal magnetoresistance and magnetooptical effects, assigned rightly to the exchange interaction of band carriers and localized spins. This sd -f coupling results in a giant spin splitting of bands below T C , as well as in magnetization fluctuations near T C generated by band carriers [4, 5] . Due to the presence of a sizable sd -f exchange interaction, by electron doping (oxygen vacancies, Eu substituted by Gd) the magnitude of T C can be enhanced by about 50K in EuO, in agreement with the Ruderman-Kittel-Kasuya-Yosida (RKKY) theory [3] .\n\n[∗ dietl@ifpan.edu.pl](mailto:dietl@ifpan.edu.pl)\n\n[† alberta.bonanni@jku.at](mailto:alberta.bonanni@jku.at)\n\n[‡ ohno@riec.tohoku.ac.jp](mailto:ohno@riec.tohoku.ac.jp)\n\nMore recently, EuS and related ferromagnetic insulators have been proposed as functional overlayers that can lead to novel topological properties by exchange splitting of interfacial bands via a ferromagnetic proximity effect [6] . At the same time, HgCr 2 Se 4 ( T C = 110K) appears to be a Weyl semimetal [7] . Furthermore, antiferromagnetic EuTe constitutes a test-bench for the emerging field of antiferromagnetic spintronics [8] .\n\nAnother class of materials that attract considerable attention are van der Waals magnetic semiconductors studied down to the atomically thin limit [9] . A competition between ferromagnetic and antiferromagnetic superexchange accounts for the magnetic properties of CrI 3 and related systems as a function of the number of layers, electric field, and strain [9, 10] . In particular, monolayers are ferromagnetic in the case of these compounds in which, similarly to 2D (Cd,Mn)Te [11] , the lowtemperature 2D spin order is stabilized by the large magnitude of the uniaxial magnetic anisotropy [12] . On the other hand, TMPX 3 , where TM is a transition metal and X is either S or Se, are antiferromagnetic semiconductors. Their properties as a function of the layer number are under investigations [9] .&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.707</span>
+  }
+]</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 2</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">The search still didn&#x27;t yield direct CrX₃ Curie temperature numbers. Let me do a more targeted search specifically about 2D van der Waals magnets and the Kitaev/SOC mechanism in CrI₃.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;literature_search
+    <span class="tool-id">toolu_01BxdFnYZXk1w9f1hC1y3kcs</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;query&quot;</span>: <span class="js">&quot;CrI3 CrBr3 CrCl3 Curie temperature ferromagnetism 2D van der Waals magnetic anisotropy spin-orbit coupling&quot;</span>,
+  <span class="jk">&quot;top_k&quot;</span>: <span class="jn">8</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 literature_search
+    <span class="tool-id">toolu_01BxdFnYZXk1w9f1hC1y3kcs</span>
+  </div>
+  <div class="tool-body"><pre class="json">[
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1901-09306v2::c0006&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1901.09306v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Strain-Induced Room-Temperature Ferromagnetic Semiconductors with Large Anomalous Hall Conductivity in Two-Dimensional Cr2Ge2Se6&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2019</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;To study the magnetic ground state of 2D Cr 2 Ge 2 Se 6 , we examine the possible states with paramagnetic, ferromagnetic and antiferromagnetic configurations. The calculations reveal that the energy of the paramagnetic state is 6 eV higher than the ferromagnetic and antiferromagnetic sates. Fig. 3(a) shows four possible magnetic sates of 2D Cr 2 Ge 2 Se 6 : ferromagnetic (FM) state, antiferromagnetic (AFM) N´ eel state, AFM stripe state, and AFM zigzag state. The calculations show that the FM state is the most stable state, and the energy difference between the FM and the AFM configuration is more than 30 meV as listed in Table I. Furthermore, as shown in Fig. 3(b), the calculations show that the lowest energy of ferromagnetic state is obtained when the magnetization direction is perpendicular to the two-dimensional materials, with magnetic anisotropy energy of 0.32 meV per unit cell of Cr 2 Ge 2 Se 6 . As listed in Table I, the calculation shows that for 2D Cr 2 Ge 2 Se 6 , the spin momentum of Cr atom is 3.4 µ B , and the occupation number of Cr 3 d orbitals is 3.976. The Curie temperature T c can be estimated by the Monte Carlo simulation based on a 2D Ising model. The exchange coupling parameter is estimated as the total energy difference of ferromagnetic and antiferromagnetic states E AFM -E FM as listed in Table I, which was ob- tained by the DFT calculations. The obtained normalized magnetization as function of temperature is shown in Fig.4 (a). The experimental result of magnetization for Cr 2 Ge 2 Te 6 is taken from temperature-dependent Kerr rotation of bilayer Cr 2 Ge 2 Te 6 with T c = 28 K [6]. The calculated Curie temperature is T c = 30 K for the monolayer Cr 2 Ge 2 Te 6 , which is close to the experimental value. It is noted that for simplicity the Ising model is applied in our Monte Carlo simulation, while the Heisenberg model with magnetic anisotropy was suggested in experiment [6]. In addition, the estimated Curie temperature T c could be even larger by using the mean field approximation [17]. The calculated Curie temperature for monolayer Cr 2 Ge 2 Se 6 is T c = 144 K, which is about 5 times higher than the T c = 30 K for monolayer Cr 2 Ge 2 Te 6 by the Monte Carlo simulation. More interestingly, the Curie temperature can be enhanced to T c =326 K by applying tensile 3% strain, and T c = 421 K with 5% strain. We find that T c is decreased to 67 K with&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.949</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1503-08199v2::c0007&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1503.08199v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Correlations in the Quasi-2D Semiconducting Ferromagnet CrSiTe$_3$&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2015</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Fig. 3(a) and (c) show the spin wave dispersions measured on the SEQUOIA spectrometer, with an incident energy E i =30 meV. Panel (c) shows the dispersion along (0 0 L ) with integration ranges of 0.4 reciprocal lattice units (r.l.u) along H and K . This shows that the dispersion is very weak along the c -axis, and that the minimum in the spin wave dispersion is below 1 meV at the zone center, (0 0 -3). Since the dispersion along L is relatively weak, it was observed that varying the integration range along L had little effect on the plot of the spin wave spectrum. Therefore, the spectrum shown in Fig. 3(a) was constructed by integrating over the full L -range, -12 ≤ L ≤ 12, while using an integration range of 0.2 r.l.u. along K . This shows two spin wave bands, one peaking at ≈ 8 meV and the higher band peaking at ≈ 15 meV, which meet at the zone boundaries. The data along ( H 0 0) using a smaller integration range for L showed identical dispersions, supporting the conclusion that the spin waves are close to two-dimensional. The spin waves were modeled with a Hamiltonian given by: FIG. 3. (color online) The panels on the left show the spin waves of CrSiTe 3 measured on the SEQUOIA spectrometer at T = 10 K, while the panels on the right show the calculated spin wave dispersions, along the ( H 0 0) direction (panels (a) and (b)) and the (0 0 L ) direction (panels (c) and (d)). The calculated patterns use the model and exchange parameters described in the text, producing very good agreement with the experimental data. &lt;!-- image --&gt; &lt;!-- formula-not-decoded --&gt; where the J &#x27;s are exchange constants between neighboring spins, ⃗ S i , D z represents a single-ion anisotropy and the spins are assumed to be localized Cr 3+ , S = 3 / 2 moments, as shown in Fig. 1. The very small value of the spin gap and the weak c -axis dispersion are both able to be accurately determined from the SEQUOIA data. The magnetic anisotropy necessitates a non-zero spin gap, but the SEQUOIA measurements have shown that it is less than 1 meV. This is consistent with magnetization data taken to characterize the sample, which observes very little magnetic hysteresis and a field of 1.5 T applied in the ab -plane (the hard magnetization direction) is required to saturate the magnetic moment. Additionally, DFT calculations based on purely van der Waals interactions have found that there is an entropy difference of ≈ 20 µ eV, favoring c -axis ordering, as compared to ordering within&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.931</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0511320v3::c0007&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0511320v3&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Ferromagnetism of Ga$_{1-x}$Mn$_x$As and Weiss theory of Curie temperature in the coherent potential approximation&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2005</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;76 K. It is seen that our CPA+Weiss approach for T C does reveal the observed behavior. Our result show that both two sets of values J K , E M can explain the measured results. To conclude, we summarize our results here. Using CPA and treating the impurity spins fully quantum mechanically, we have calculated the ground-state energies of GaAs-based III-V DMS for a wide range of model parameters. The results show that ferromagnetism is always preferable at low temperatures . With the help of Weiss molecular theory of ferromagnetism, we obtained a nonlinear relation of Curie temperature with respect to Kondo coupling. Our theoretical prediction of relation T C ∼ x does fit quite well the measured results for as-grown samples [26]. The deviations of our calculated results from the experimental values is due to the sensitivity of T C to the hole density or the ratio p/x , which is difficult to be measured precisely. Though the value of J K = 1 . 2 eV is more generally accepted than other values, the actual value of J K is still an issue of debate. Our calculation allows adjustment of model parameters J K , E M and the main features of numerical results for different model parameter values remain similar. Finally, a number of complicated models with complicated approximations have been proposed to calculate Curie temperatures (e.g.[33]). Yet, we believe that CPA, a method having been tested for decades, is still an effective way to understand ferromagnetism in DMS. The authors thank Prof. Rajagopal for his helpful discussions. We are grateful to Dr. Edmonds for providing additional data. This work is supported in part by the Army High Performance Computing Research Center(AHPCRC) under the auspices of the Department of the Army, Army Research Laboratory (ARL) under Cooperative Agreement number DAAD19-01-2-0014. † Corresponding author, e-mail: shixiang.feng@famu.edu - [1] A. Oiwa, S. Katsumoto, A. Endo, M. Hirasawa, Y. Iye, H. Ohno, F. Matsukura, A. Shen &amp;amp; Y. Sugawara Solid State Commu. 103 (1997):209. - [2] T. Dietl, A. Haury &amp;amp; Y. Merle d&#x27; Aubign´ e , Phys. Rev. B 55 (1997):R3347. - [3] T. T. Jungwirth ,W. A. Atkinson, B. H. Lee, and A. H. MacDonald Phys. Rev. B 59 (1999):9818. - [4] T. Dietl, H. Ohno, F. Matsukura, J. Cibert &amp;amp; D. Ferrand, Science 287 (2000):1019. T. Dietl H. Ohno &amp;amp; F. Matsukura , Phys. Rev. B63 (2001) :195205. - [5] J. K¨ onig, Hsiu-Hau Lin, &amp;amp; Allan H. MacDonald, Phys. Rev. Lett. 84 (2000):5628. - [6] A.K. Rajagopal, M. Mogus &amp;amp; P.J. Lin-Chung, Philosophical Magazine B 81 (2001):1167. - [7] H. Akai Phys. Rev. Lett. 81 (1998):3002. - [8] Y.M. Matsuda et al, Phys. Rev. B70&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.898</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1901-09306v2::c0001&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1901.09306v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Strain-Induced Room-Temperature Ferromagnetic Semiconductors with Large Anomalous Hall Conductivity in Two-Dimensional Cr2Ge2Se6&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2019</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;introduction&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Combining magnetism and semiconductor enables the development of magnetic semiconductors, a promising way to realize spintronic applications based on use of both charge and spin degrees of freedom in electronic devices [1, 2]. The highest Curie temperature of the most extensively studied magnetic semiconductor (Ga,Mn)As has been T c = 200 K [3], still far below room temperature. The room temperature ferromagnetic semiconductors are highly required by applications. Recent advances in magnetism in two-dimensional (2D) van der Waals materials have provided a new platform for the study of magnetic semiconductors [4]. The Ising ferromagnetism with out-of-plane magnetization was observed in monolayer CrI 3 in experiment with T c = 45 K [5]. The Heisenberg ferromagnetic state was obtained in 2D Cr 2 Ge 2 Te 6 in experiment with T c = 28 K in bilayer Cr 2 Ge 2 Te 6 [6], where the corresponding bulk was known as a layered ferromagnet with spin along c axis and T c = 61 K in experiment [7]. A large remanent magnetization with out-of-plane magnetic anisotropy was recently reported in experiment in the 6-nm film of Cr 2 Ge 2 Te 6 on a topological insulator (Bi,Sb) 2 Te 3 with T c = 80 K [8]. The magnetic structure in monolayer CrI 3 and Cr 2 Ge 2 Te 6 was recently discussed in terms of Kitaev interaction [9]. Photoluminescence and magneto-optical effects have also been discussed [10, 11]. The ferromagnetism with high T c was also reported in experiment in the monolayer VSe 2 [12] and MnSe 2 [13]. Despite the relatively small number of monolayer ferromagnetic materials realized in experiment, predicting promising candidates by first principles calculations can provide reliable reference for experiments [14, 15]. Researchers have also studied possible [∗ gubo@ucas.ac.cn](mailto:gubo@ucas.ac.cn) [† gsu@ucas.ac.cn](mailto:gsu@ucas.ac.cn) 2D ferromagnetic materials by machine learning [16] and high-throughput calculations [17]. Several methods are used to control the magnetic states in these recently discovered 2D materials. By tuning gate voltage, the switching between antiferromagnetic and ferromagnetic states in bilayer CrI 3 was obtained in experiment [18]. Using gate voltage, the enhancement of ferromagnetism in 2D Fe 3 GeTe 2 was observed in recent experiment [19]. In 2D transition metal dichalcogenides, which are non-magnetic, the strain is used to modify the optical and electronics properties [20]. The effect of strain is studied to affect the ferromagnetism in monolayer Cr 2 Ge 2 Te 6 [21] and CrX 3 (X = Cl, Br, I) [22]. The electric field effect was discussed in experiment in magnetic multilayer Cr 2 Ge 2 Te 6 [23]. Recently, heterostructures of these 2D materials have also been studied [24-26]. In this paper, by density functional theory calculations we predict a stable&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.893</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1003-5558v1::c0010&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1003.5558v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Ferromagnetism in defect-ridden oxides and related materials&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2010</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;is a high-temperature phenomenon, which is practically anhysteretic. Both these features flow naturally from the model. Were it not for spin wave excitations, Stoner ferromagnetism would lead to a Curie temperature of order the band splitting, which can be a fraction of an electron volt, or thousands of kelvins. The magnetism of a spin-split impurity band, without the charge reservoir, has recently been investigated by Edwards and Katsnelson [51] in the context of d 0 ferromagnetism in CaB6. They find that the spin wave stiffness D for a half-metallic impurity band can be of order (1/12) R 2 W v where R is the nearest neighbour distance and W v is the valence bandwidth. In TiO2 the width of the 2 p band is 10 eV and R ~ 2 nm, D is therefore 3.3 eV nm 2 , which is much greater than that of cobalt (5 meV nm 2 ). The spin wave excitations are therefore suppressed. High temperature ferromagnetism is therefore expected in the half metallic region of the phase diagram of Fig. 6. An experimental problem with measuring high Curie temperatures in these systems is that the defects are not in thermodynamic equilibrium, and their concentration evolves irreversibly on heating. The screening of the on-site Coulomb interaction which determines the value of I increases with decreasing bandwidth, but the relevant bandwidth is not W, but the width of the 2 p (O) band from which the defect band is derived [51]. Thus, a value of I ~ 1eV is plausible. A last point to emphasise here is that the moment is not limited by the magnitude of the charge transfer. It reflects the occupancy of the defect band, which becomes split as electrons are transferred to or from the charge reservoir. The moment may well exceed the number of transferred electrons. The charge reservoir just serves to tip the energy balance of the defect band in favour of Stoner splitting. Finally, we consider the magnetization process of the sparse Stoner ferromagnet. Magnetocrystalline anisotropy is expected to be negligibly small in the materials we are considering, for two reasons: i) the unpaired spins are mostly associated with the ligand, oxygen or boron, where the spin-orbit coupling is small, or with electrons trapped at oxygen vacancies (F-centres) or grain boundaries where it is absent and ii) if there is a local direction for the crystal field determined by the local symmetry created by the defects, this direction will vary from site to site, and the anisotropy averages to zero provided it is small to begin with [52]. The resulting coercivity is negligibly small. The micromagnetic state in these materials will therefore be governed by magnetic dipole interactions, which&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.883</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1909-02999v1::c0001&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1909.02999v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Families of magnetic semiconductors -- an overview&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2019</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The discovery of ferromagnetism in some europium chalcogenides and chromium spinels a half of the century ago [1] came as a surprise, since insulators typically showed antiferromagnetic or ferrimagnetic spin ordering, driven by a superexchange interaction, whereas ferromagnetism was considered a domain of metals. However, the Goodenough-Kanamori-Anderson rules indicate in which cases the superexchange can lead to ferromagnetic shortrange coupling between localized spins. This mechanism accounts e.g. for Curie temperature T C = 130K in CdCr 2 Se 4 [2] . In the case of EuO and EuS, the antiferromagnetic superexchange is overcompensated by a direct f -d ferromagnetic exchange, which results in T C = 68K and 16 K, respectively [3] .\n\nSoon after their discovery, magnetic semiconductors were found to exhibit outstanding properties, including colossal magnetoresistance and magnetooptical effects, assigned rightly to the exchange interaction of band carriers and localized spins. This sd -f coupling results in a giant spin splitting of bands below T C , as well as in magnetization fluctuations near T C generated by band carriers [4, 5] . Due to the presence of a sizable sd -f exchange interaction, by electron doping (oxygen vacancies, Eu substituted by Gd) the magnitude of T C can be enhanced by about 50K in EuO, in agreement with the Ruderman-Kittel-Kasuya-Yosida (RKKY) theory [3] .\n\n[∗ dietl@ifpan.edu.pl](mailto:dietl@ifpan.edu.pl)\n\n[† alberta.bonanni@jku.at](mailto:alberta.bonanni@jku.at)\n\n[‡ ohno@riec.tohoku.ac.jp](mailto:ohno@riec.tohoku.ac.jp)\n\nMore recently, EuS and related ferromagnetic insulators have been proposed as functional overlayers that can lead to novel topological properties by exchange splitting of interfacial bands via a ferromagnetic proximity effect [6] . At the same time, HgCr 2 Se 4 ( T C = 110K) appears to be a Weyl semimetal [7] . Furthermore, antiferromagnetic EuTe constitutes a test-bench for the emerging field of antiferromagnetic spintronics [8] .\n\nAnother class of materials that attract considerable attention are van der Waals magnetic semiconductors studied down to the atomically thin limit [9] . A competition between ferromagnetic and antiferromagnetic superexchange accounts for the magnetic properties of CrI 3 and related systems as a function of the number of layers, electric field, and strain [9, 10] . In particular, monolayers are ferromagnetic in the case of these compounds in which, similarly to 2D (Cd,Mn)Te [11] , the lowtemperature 2D spin order is stabilized by the large magnitude of the uniaxial magnetic anisotropy [12] . On the other hand, TMPX 3 , where TM is a transition metal and X is either S or Se, are antiferromagnetic semiconductors. Their properties as a function of the layer number are under investigations [9] .&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.87</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0312347v2::c0025&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0312347v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Theory of spin waves in diluted-magnetic-semiconductor quantum wells&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2003</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The presence of spin-orbit coupling described by the Dresselhaus Hamiltonian H D , Eq. (5), introduces easyaxis magnetic anisotropy which is, of course, necessary for long-range magnetic order in a quantum well. When the anisotropy, which explicitly breaks rotational invariance for the magnetization orientation, is accounted for a finite energy-gap Ω so appears in the lowest lying collective mode branch and several of the lower-lying branches in Figs. 3 and 6 are shifted to higher energies. We calculate Ω so for the lowest even mode of constant excitation profile ω + (1) , Fig. 5(a). With this aim we follow the procedure of Sec. III B and calculate Ω + (1) for small spin-orbit coupling and k = 0. We find that\n\n&lt;!-- formula-not-decoded --&gt;\n\nwhere ϵ F = ( ℏ 2 / 2 m ∗ ) k 2 F is the Fermi energy of the 2D electron gas paramagnetic state and n = n ↑ + n ↓ . This coincides with our previous result 28 obtained by using perturbation theory.\n\nThe above result and discussion holds for symmetric quantum wells. In asymmetric quantum wells, spin-orbit coupling is not only described by the Dresselhaus terms, but has also a Rashba 52 spin-orbit contribution. For electrons in the conduction band, the Rashba Hamiltonian is linear in the in-plane momentum k . This will affect the magnetic anisotropy and the energy gap in the spectrum of collective spin excitations. The interplay of these two types of spin-orbit coupling will complicate the dispersion of the spin waves (Fig. 3). In particular, they will become anisotropic, analogous to the anisotropic transport properties discussed in Ref. 53. For heavy holes in the valence band the leading Rashba term is cubic in momentum. 54 This complicates the evaluation of the spin-wave dispersions even more.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.866</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1503-08199v2::c0013&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1503.08199v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Correlations in the Quasi-2D Semiconducting Ferromagnet CrSiTe$_3$&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2015</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;conclusion&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;We have measured CrSiTe 3 using elastic and inelastic neutron scattering. These measurements observe bulk ferromagnetism below T C = 33.2(1) K and the critical exponent of the neutron scattering intensity was found to be β = 0.151(2), close to the value expected for a two-dimensional system. The magnetic Bragg peaks also exhibited a diffuse component, the intensity of which peaks at T C , indicating two-dimensional ferromagnetic correlations are present in the ab -plane above the ferromagnetic transition. To characterize these correlations, two-axis measurements were performed, which provided an effective quantitative measure of the in-plane correlation length. As expected, the correlation length diverged at T C but was still larger than the nearest-neighbor CrCr distance at all temperatures measured, up to 250 K. These measurements suggest that while CrSiTe 3 only orders in three dimensions below 33 K, there are strong two-dimensional static correlations that persist up to at least room temperature. In contrast to the previous assumption of Ising spins, the spin wave measurements suggest that the spins are very Heisenberg-like, with a very small spin gap of 0.075(24) meV due to a small single-ion anisotropy. Xray diffraction measurements 12 and DFT calculations 21 find evidence of van der Waals interactions creating a very small octahedral distortion along the c -axis, creating the anisotropy. We find that the dominant interaction, J ab 1 = -1.27(23) meV, is likely due to the superexchange mediated by the Te ions. The 2 nd and 3 rd nearest-neighbor in-plane interactions are much weaker, likely a result of double-superexchange interactions. Above T C , no spin waves are present along the L direction, but they persist in a broadened form along the H direction. Measurements at 40 K along ( H 0 0) showed broadened spin waves consistent with dynamics confined to the ab -planes, a clear indication of two-dimensional behavior, while temperature-dependent measurements show an inelastic signal that is visible up to 300 K. The latter finding suggests that there are dynamic in-plane correlations that persist up to at least room temperature as well. Considering these results in conjunction with the neutron diffraction measurements, we find that both - [∗ williamstj@ornl.gov](mailto:williamstj@ornl.gov) - 1 A.K Geim and K.S. Novoselov. Nature. 6 , 183 (2007). - 2 W. Han, R.K. Kawakami, M. Gmitra and J. Fabian. Nat. Nanotech. 9 , 214 (2014). - 3 I. Zutic, J. Fabian and S. Das Sarma. Rev. Mod. Phys. 76 , 323 (2004). - 4 A.H. MacDonald, P. Schiffer and N. Samarth. Nat. Mater. 4 , 195 (2005). - 5 T. Dietl. Nat. Mater. 9 , 965 (2010). - 6 Z. Deng, C.Q. Jin, Q.Q. Liu, X.C. Wang, J.L. Zhu, S.M. Feng, L.C. Chen, R.C. Yu, C. Arguello,&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.861</span>
+  }
+]</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 3</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">I found a key reference mentioning monolayer CrI₃ T_C = 45 K. Now let me search specifically for the bulk Curie temperatures of the full CrX₃ series and the Kitaev/Dzyaloshinskii-Moriya interaction (DMI) origin of the trend.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;literature_search
+    <span class="tool-id">toolu_01MqxGsv2Fcicfi2rDrM7WwK</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;query&quot;</span>: <span class="js">&quot;bulk CrI3 61K CrBr3 37K CrCl3 17K Curie temperature halide exchange coupling Kitaev Heisenberg&quot;</span>,
+  <span class="jk">&quot;top_k&quot;</span>: <span class="jn">8</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 literature_search
+    <span class="tool-id">toolu_01MqxGsv2Fcicfi2rDrM7WwK</span>
+  </div>
+  <div class="tool-body"><pre class="json">[
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0408450v1::c0005&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0408450v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Low temperature ferromagnetism in (Ga, Mn)N&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2004</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;ref. 4 . Since the extended hole state mediates the ferromagnetic interaction 5 , the interaction range is long ranged in p -d exchange systems essentially. Actually the interaction extends farther than 3 lattice constants (20th shell). For higher concentrations, due to the screening of the pair interaction by the other impurities, interaction range becomes slightly shorter. FIG. 2: Curie temperatures of nearest neighbor Heisenberg model in fcc structure. T C &#x27;s are calculated by the mean field approximation (solid line), the random phase approximation (dotted line) and Monte Carlo simulation (crosses). The percolation threshold is 0.20 for the fcc structure. &lt;!-- image --&gt; As is well known the LDA predicts the position of localized d-levels at too high energy. However, according to recent calculations by Shick et al. 30 , the LDA+U calculations only slightly affect the impurity bands at the Fermi level in (Ga, Mn)N due to the extended nature of the anti-bonding t 2 states of the impurity bands. Therefore, the LDA provides a fairly good description of the magnetic properties of (Ga, Mn)N. Even if the nearest neighbor interactions are changed in the LDA+U calculations, this will not affect much the Curie temperatures for low concentrations, because only the longer ranged interactions are relevant due to the percolation effects. On the other hand, as we have already shown in ref. 4 , the LDA+U calculations with U=4eV yield a different description of the magnetism in (Ga, Mn)As. This effect could change the calculated T C values slightly, however, the exchange interaction in (Ga, Mn)As still remains long ranged and the basic argument of the following discussion is not affected. ̸ It is well known that the Curie temperature in the mean field approximation T MFA C is calculated as k B T MFA C = 2 3 c Σ i =0 J 0 i , where k B is Boltzmann constant. As shown in this equation, evaluation of T MFA C does not require any information on the interaction range, because only the sum of the coupling constants appears in the equation. This simplification leads to significant errors in the calculated T C of a dilute system with low concentrations. This fact is easily understood by simple consideration and is known as the percolation problem 31 . Let us suppose a Heisenberg model with a ferromagnetic exchange interaction only between nearest neighbors (nearest neighbor Heisenberg model), and consider what happens when the system is diluted with non-magnetic sites. When the concentration of magnetic sites is 100%, we have a perfect ferromagnetic network. Due to the dilution, the network is weakened, and for a concentration below a percolation threshold the ferromagnetism cannot spread all over the system&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.798</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0701389v1::c0018&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0701389v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Curie temperature of Kondo lattice films with finite itinerant charge carrier density&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2007</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;In the last subsection we want to briefly discuss the effect of a single-ion anisotropy on the ferromagnetic transition temperature of Kondo lattice films. There exists abundant literature on scaling relations between the critical temperature and key film parameters as anisotropy strength, exchange coupling, and the film thickness, mostly for Ising-like or Heisenberg films. As we are dealing with an effective localized spin model, derived from the KLM, these results should also apply in our case. The exchange integrals (14) now are, however, T -dependent. In the following investigation of the functional dependence T C ( J, K 2 ) we restrict ourselves to a monolayer because in this case the role of anisotropy is most pronounced and the extension to multilayers is straightforward. The effect of the anisotropy strength on the ferromagnetic transition temperature over the whole range of the intra-atomic exchange coupling J is shown in Fig. 10. One can distinguish two regimes: As can be seen from the inset (representing the saturation regime) the well known logarithmic dependence of the Curie temperature on the anisotropy strength K 2 is also valid for the Kondo lattice model. Already a very small anisotropy is sufficient to obtain a T C which is of the order of magnitude of Curie temperatures realized for much larger, more realistic values of K 2 . Evaluating the formula for the Curie temperature (22) by solving the corresponding q -integral for the predomi- nantly contributing small wave vectors one gets &lt;!-- formula-not-decoded --&gt; c is a constant ≈ 1 and ˜ J is the T -dependent effective coupling of one localized spin to all others, i.e. it determines the order of magnitude of the magnon energies, which are typically much larger than the anisotropy energy, ˜ J &amp;gt;&amp;gt; K 2 . An analogous formula for the Heisenberg model with constant exchange coupling is discussed, e.g., in Ref. 40. In our case the T -dependence of the exchange integrals (14) in the paramagnetic regime is evidently too weak to cause significant deviations from the logarithmic dependence, not too surprisingly because this temperature dependence is a mere Fermi softening effect. Whereas in the saturation region the scaling of T C with K 2 is determined by Eq. (27) as just discussed, in the critical region FM becomes unstable and a higher K 2 only slightly reduces J c . There T C → 0 and thus the effective coupling ˜ J → 0, see Eq. (22) where the effective coupling corresponds to the ˆ J -exchange term. The critical region has a width of ∆ J ≈ 10 -1 eV within which the effective coupling typically changes by ∆ ˜ J ≈ 10 -3 eV. Thus&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.651</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0406569v1::c0009&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0406569v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Carrier induced ferromagnetism in concentrated and diluted local-moment systems&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2004</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;in the choice of η . Fig. 2 demonstrates that ferromagnetism does exist with a distinct band occupation dependence of the Curie temperature. The most remarkable feature is the restriction of ferromagnetism to surprisingly low carrier concentrations n . Arbitrarily small band occupations are sufficient to create a ferromagnetic order. In any case, the Curie temperature is zero for n = 0. It was, however, numerically not possible to decide whether or not there is a steep but continuous increase to finite values. Note that the KLM does not consider a direct exchange between the localized moments. So the collective ordering is fully mediated by the interband exchange, i. e. by the conduction electron spin polarization. The width of the ferromagnetic phase on the n axis increases with the exchange coupling strength J , being restricted, however, even for strong couplings to low itinerant electron concentrations. The maximum value of the Curie temperature also increases with J . Typical J values for (&#x27;concentrated&#x27;) ferromagnetic semiconductors such as EuO and EuS are of the order of some tenth of eV (Ref. 20,21). Similar results are found with the &#x27;modified&#x27; RKKY of Refs. 10,12, where an effective Heisenberg model is solved by the Tyablikov approximation 16 . The model theory in Ref. 22 yields also qualitatively the same T C behaviour, namely a steep increase of T C for very weak band occupations, a rather distinct maximum and then also a very rapid decrease to zero. The new feature of our theory (Fig. 2) is the T C behaviour for n → 0. The general J dependence of T C is shown in Fig. 3. Two features are worth mentioning. Firstly, T C appears FIG. 3: Curie temperature as a function of the exchange coupling strength J for three different band occupations n in the &#x27;concentrated&#x27; ( x = 1) Kondo-lattice model. Parameters: sc lattice, S = 5 2 , W = 1eV &lt;!-- image --&gt; to run into a saturation in the strong coupling region. This is similar to what is reported in Ref. 10. In the present theory, however, the saturation needs a substantially stronger exchange coupling. Secondly, a critical J = J c ( n ) is needed to switch on ferromagnetism, which, at least in the low concentration regime, increases with increasing n . We now inspect the influence of the dilution of the moments ( x &amp;lt; 1). We assume that each magnetic ion can in principle donate one electron to the conduction band. However, not all these charge carriers can be considered as really itinerant, so that n ≤ x . Therewith we simulate the situation in the diluted ferromagnetic semiconductors. In the case of Mn&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.605</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1706-05490v1::c0008&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1706.05490v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;The Ferromagnetism in the Vicinity of Lifshitz Topological Transitions&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2017</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;3 J lh = 3 × 59 meV · nm 3 , device capacitance C = 20nF/cm 2 . &lt;!-- image --&gt; Let us now discuss the Curie temperature dependence on the hole density/gate voltage in the QW structure presented in Fig. 4. In the calculation we took the following values of the exchange interaction constants in Eq. (5) J hh = 3 J lh = 3 J p -d , with J p -d = 59meV · nm 3 being the p -d exchange integral in the CdTe semiconductor [1-3]. In order to relate the gate voltage V g and the hole density n we used the plane capacitor relation n = CV g /e , where e &amp;gt; 0 is elementary charge and the capacitance C = 20nF/cm 2 ( C/e = 1 . 25 × 10 11 cm -2 /V). Chosen capacitance is comparable to the real observable value in CdTe solar cells [22]. Figure 4 shows that each Lifshitz transition in the system is accompanied with a step-like increase in the Curie temperature. In particular, the Curie temperature doubles with the bias voltage changing between 10 and 15 V. As expected, the Curie temperature is the higher the higher the Mn content in the QW is, which makes steps in the dependence of T c on the gate voltage/hole density more pronounced. Due to the thermal smoothing of the steps and peaks in the density of states, seen in Fig. 2(a), the steps are smooth and, moreover, for the studied system the square-root singularity in the density of states in the vicinity of the first and second excited subbands is not reproduced in the T c dependence on the hole density. Interestingly, the Curie temperature slightly decreases with the increase in the hole density in the range of gate voltages from 40 V to 50 V. This corresponds to the hole chemical potential varying from 50 meV to 70 meV, approximately, where, in accordance with Fig. 2(a) the heavy-hole fraction in the density of states decreases because the corresponding subband becomes more and more light-hole like. Since the exchange interaction between carriers and magnetic ions is dominated by the heavy hole contribution the decrease of the heavy-hole density of states results in the decrease of the Curie temperature. We show that the Curie temperature may be dramatically changed by a small variation of the gate voltage in specially designed doped diluted semiconductor quantum wells. Taking into account the peculiarities of the complex valence band in a zinc-blende semiconductor, we estimated that one can reach the Curie temperature variation by a factor of two with a variation of the applied voltage by about 5V. The predicted effect&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.58</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0701389v1::c0003&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0701389v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Curie temperature of Kondo lattice films with finite itinerant charge carrier density&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2007</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;introduction&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;classical core spins and which is employable at all temperatures. Results on the magnetization and critical temperature of ferromagnetic KLM model films with finite band occupation have already been reported in Ref. 17. However, in the present work we make use of a more sophisticated approach for the fermionic subsystem and carry out a wider and considerably more detailed investigation of the Curie temperature. A similar system is also treated in Ref. 18 based on a method guided by the same spirit. However, the theory of the electronic subsystem there is on a mean-field level only and just nearest neighbor Heisenberg interaction is considered, in spite of the underlying RKKY-like exchange being long ranged. What&#x27;s more the effective exchange integrals derived in Ref. 18 in terms of the susceptibility of free electrons are proportional to J 2 and thus fail to give the appropriate strong-coupling behavior where the Curie temperature is independent of J . As far as the numerical evaluation is concerned the thickness dependence of the Curie temperature is analysed. This paper is organized as follows. In the next section we briefly summarize our method to solve the KLM for the electronic self-energy. Then we derive an effective Heisenberg Hamiltonian which results from integrating out the fermionic degrees of freedom. In the numerical results section we discuss the temperature dependent quasiparticle excitation spectrum and charge transfer before we present an extensive analysis of the Curie temperature and its dependence on the various model paramters like, e.g., the magnetic anisotropy strength.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.538</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0409403v1::c0012&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0409403v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Low temperature ferromagnetic properties of the diluted magnetic semiconductor Sb2-xCrxTe3&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2004</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Figure 1.  (a) Hall coefficient RH and (b) in-plane electrical resistivity ρ as a function of temperature for Sb2-xCrxTe3 single crystals. Current is perpendicular to the c-axis. The Hall concentration at room temperature is shown in the inset.\n\nFigure 2.  Temperature dependence of the magnetization M (cooling in B = 1000 G parallel to c-axis) and in-plane resistivity ρ for Sb2-xCrxTe3 single crystals with x = 0.047 (triangles) and x = 0.095 (circles). The solid lines are fits to the spin-wave model. See text for details. The inset shows the Curie temperature TC as a function of x as determined from the M versus T point of inflection (solid squares) and from three-dimensional spinwave and Heisenberg models of the low temperature M versus T data.\n\nFigure 3.  Inverse magnetic susceptibility versus temperature for Sb2-xCrxTe3 single crystals. The lines are linear extrapolations illustrating the ferromagnetic (positive) CurieWiess temperatures.\n\nFigure 4.  Hysteresis loops in magnetization M and Hall resistivity Hall ρ at a temperature of 5 K for a single crystal of Sb1.905Cr0.095Te3. Magnetic field is oriented parallel to the caxis.\n\nFigure 5.  Anomalous Hall coefficient RS as a function of electrical resistivity ρ for Sb2xCrxTe3. Data are taken from all samples with x ≥ 0.031 and at temperatures ranging from\n\n2 K up to the respective Curie temperatures. The dashed line illustrates the relation RS = c ρ 1 which is consistent with AHE due to skew scattering.\n\nFigure 6.  Comparison of hysteresis in magnetization with applied magnetic field both parallel and perpendicular to the c-axis for Cr-doped Sb2Te3 and V-doped Sb2Te3 taken at 2 K.\n\nFigure 1.\n\n&lt;!-- image --&gt;\n\nFigure 2.\n\n&lt;!-- image --&gt;\n\nFigure 3.\n\n&lt;!-- image --&gt;\n\nFigure 4.\n\n&lt;!-- image --&gt;\n\nFigure 5.\n\n&lt;!-- image --&gt;\n\nFigure 6.\n\n&lt;!-- image --&gt;\n\nTABLE I.  Summary of Curie-Weiss fitting of magnetic susceptibility data over the temperature rage 100 K to 300 K for single crystal Sb2-xCrxTe3. Note that the Curie Weiss temperatures CW θ are higher than TC determined from the point of inflection in M ( T )\n\n| x (EMPA)      |   C [cm 3 K/g] |   CW θ [K] |   0 χ [cm 3 /g] |   p eff /Cr |   S /Cr |\n|---------------|----------------|------------|-----------------|-------------|---------|\n| 0.014 ± 0.001 |      3.0062e-5 |    15.1599 |      -3.1400e-7 |       3.281 |   1.215 |\n| 0.031 ± 0.014 |      8.9440e-5 |    24.9493 |      -1.9135e-7 |       3.803 |   1.466 |\n| 0.047 ± 0.003 |      1.3486e-4 |    24.7238 |       1.8279e-8 |       3.794 |   1.462 |\n| 0.069 ± 0.001 |      2.0959e-4 |    30.6933 |      -1.7882e-7 |       3.903 |   1.514 |\n| 0.095 ± 0.001 |      2.9090e-4 |     37.110 |      -2.3603e-7 |       3.918 |   1.522 |&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.534</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0701389v1::c0014&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0701389v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Curie temperature of Kondo lattice films with finite itinerant charge carrier density&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2007</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;it is both energies which make the ferromagnetic state unstable for higher n , leading to a critical interaction strength as in the self-consistent calculation based on the effective Heisenberg model before. The fact that in terms of the ground state energy there is no J c at n = 0 . 2 contrary to the results in Fig. 4 suggests that other magnetic correlations such as non-commensurate or antiferromagnetic become important, reducing further the parameter range of FM stability. Furthermore it is remarkable that the critical interaction strength is smallest for a monolayer whereas films with α &amp;gt; 1 behave rather bulk-like as far as J c is concerned. Taking into consideration the energy scales of the KLM one would expect this tendency. Quite generally the physics should be governed by the ratio J/W . Hence a smaller bandwidth due to a reduced number of layers implies a smaller J around which the intermediate coupling regime is located. In addition the reduced bulk FM region might indicate favored antiferromagnetic configurations which are not existent in the 2D case for mere geometrical reasons. For comparison we performed calculations where charge transfer was permitted. Allowing charge transfer means that we used equal center of gravities of the noninteracting local density of states T α 0 = T 0 for all layers. We did not find any noteworthy influence of charge trans- fer on T C compared to the charge neutral case as Fig. 4 demonstrates for a 5-layer film. 38 FIG. 8: Total, kinetic, and potential energy differences between the paramagnetic and the ferromagnetic state ∆ U = U PM ( T = T C ) -U FM ( T =0) as a function of the Curie temperature in the strong coupling regime. The film thickness is an implicit parameter and increases from left (monolayer) to right ( N L = 15). Parameters: n = 0 . 5 , J = 1 eV , K 2 = 10 -6 eV. &lt;!-- image --&gt;&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.532</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;0708-3921v1::c0002&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;0708.3921v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Relation of Curie temperature and conductivity: (Ga,Mn)As alloy as a case study&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2007</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;abstract&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;of compensation and dilution and beyond the mean-field approach as concerns the effect of spin fluctuations [5, 6, 7]. Second, the conductivity is evaluated using the Kubo-Greenwood formula which represents a non-perturbative approach. We stress that the present approach has no adjustable parameters. Indeed, we will use for each sample the measured nominal Mn concentration and the carrier density which will be then used to estimate the concentration of compensating defects. We will consider, as compensating defects, separately As-antisites and Mn-interstitials and demonstrate a key relevance of the latter defects for a good quantitative agreement with experimental data [2]. We will now briefly describe methods used to calculate the Curie temperatures and con- ductivities for samples at various states of annealing corresponding to a given nominal Mn-concentration. We evaluate the Curie temperature in the spirit of a two-step model as suggested by Liechtenstein [8]. In the first step are total energies of low-lying magnetic excitations mapped onto the classical random Heisenberg model in which are the pair exchange integrals determined explicitly from energies corresponding to small rigid rotations of spins on the lattice in the framework of the adiabatic approximation by employing the Green function approach. In the second step, methods of statistical physics are used to estimate the Curie temperature for this Hamiltonian. This approach has proved to be very useful for a broad class of magnetic materials [9, 10], including the DMS [5, 6, 7]. We have implemented above approach in the framework of the all-electron scalar-relativistic tight-binding linear muffin-tin orbital (TB-LMTO) method in which the disorder due to various (small) defect concentrations is included in the framework of the coherent potential approximation (CPA) [11]. The CPA is known to reproduce reliably the compositional dependence of carrier concentrations as well as to describe correctly the transport relaxation time due to the presence of various defects in random systems. It should be noted that the same calculated carrier concentration and carrier lifetimes are used for the evaluation of exchange integrals and the conductivity in the present approach in a striking contrast to the J pd -model where carrier lifetime is neglected and has to be implemented additionally for the evaluation of the conductivity. On the other hand, the CPA cannot describe properly behavior of electrons in localized states in which, for example, the hopping conductivity dominates. Here, however, we consider systems in the metallic regime. The Curie temperature as determined from the Heisenberg Hamiltonian is due to transversal spin fluctuations neglecting thus the effect of longitudinal (Stoner) excitations. This is a good approximation for systems with large rigid magnetic moments such as Mn-impurities in GaAs semiconductor [9]. The main problem of reliable determination of T c is the dilution,&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.528</span>
+  }
+]</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 4</span>
+    <span class="stop-badge">tool_use</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">I found the key mention of monolayer CrI₃ T_C = 45 K. Let me now do one more targeted search specifically about the role of spin-orbit coupling (SOC), Dzyaloshinskii-Moriya interaction, and the halide identity in governing T_C across the CrX₃ series.</div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--sage)">⚙ Tool Calls (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-call">
+  <div class="tool-card-header">
+    ⚙ &nbsp;literature_search
+    <span class="tool-id">toolu_018LZterQDnWr6TwARpUatFp</span>
+  </div>
+  <div class="tool-body"><pre class="json">{
+  <span class="jk">&quot;query&quot;</span>: <span class="js">&quot;CrX3 chromium trihalide magnetic anisotropy spin-orbit coupling halide ligand Cr-X-Cr bond angle superexchange trend&quot;</span>,
+  <span class="jk">&quot;top_k&quot;</span>: <span class="jn">8</span>
+}</pre></div>
+</div></div>
+</div>
+
+<div>
+  <div class="section-label" style="color:var(--peach)">📦 Tool Results (1)</div>
+  <div class="tools-grid">
+<div class="tool-card tool-result">
+  <div class="tool-card-header">
+    📦 literature_search
+    <span class="tool-id">toolu_018LZterQDnWr6TwARpUatFp</span>
+  </div>
+  <div class="tool-body"><pre class="json">[
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1503-08199v2::c0010&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1503.08199v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Correlations in the Quasi-2D Semiconducting Ferromagnet CrSiTe$_3$&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2015</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;the value of the single-ion anisotropy, D z , is very close to zero. | Exchange | Description | Distance | Value (meV) | |------------------------------|-----------------------------------------------------------------------------------------------|-----------------------------------------|------------------------------------------------------| | J ab 1 J ab 2 J ab 3 J c D z | 1 st NN in-plane 2 nd NN in-plane 3 rd NN in-plane 1 st NN out-of-plane Single Ion Anisotropy | 3.907 ˚ A 6.768 ˚ A 7.814 ˚ A 6.852 ˚ A | -1.27(23) -0.10(50) -0.285(73) -0.730(96) 0.0252(80) | As expected for a quasi-two-dimensional system, the nearest neighbor in-plane coupling, J ab 1 , is the dominant interaction and is ferromagnetic, as are the other in-plane exchange constants. While J ab 1 is only slightly larger than J c , there are 3 nearest neighbors in the ab -plane compared to only one along the c -axis. This makes the in-plane exchange more than 5 times larger than the out-of-plane coupling. The ferromagnetic origin of the in-plane terms is likely due to superexchange mediated by the Te ions, shown in Fig. 1(b). The Cr 3+ ion direct exchange is antiferromagnetic, though the large nearest-neighbor Cr-Cr distance of 3.987 ˚ A should make this a weak effect 24,25 . Finally, the Cr octahedra are edge-sharing and the Cr-Te-Cr angle is 88.8 ◦ , very close to perfectly orthogonal. This arrangement of the ions would suggest that superexchange of the type described by the Goodenough-Kanamori rules 26-28 would be ferromagnetic, consistent with the observations of ferromagnetism in other layered Cr 3+ compounds with similar superexchange pathways 25 . First principles DFT calculations on monolayer CrSiTe 3 suggest that the 2 nd and 3 rd nearest-neighbor in-plane interactions are Cr-Te-Te-Cr double-superexchange interactions 17 , leading to the small values we observe for J ab 2 and J ab 3 . Furthermore, the observation that | J ab 2 | &amp;lt; | J ab 3 | was also predicted by the DFT calculations. There are two double-superexchange pathways that contribute to J ab 2 , one of which is ferromagnetic and the other antiferromagnetic, making it a very weak exchange 17 . FIG. 5. (color online) The temperature dependence of spin dynamics. (a) The inelastic neutron spectrum measured at T = 40 K on the SEQUOIA spectrometer. We see that broadened spin wave features remain, even above the transition, while there are no such excitations along the L direction. This is a clear signature of the two-dimensionality of this material. The feature at 20 meV is extrinsic to the sample, verified by performing an empty can measurement. (b) The in-plane spin dynamics along (H 0 3) at various temperatures, measured on CTAX and offset for clarity. Sharp spin waves are observed below the transition,&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.762</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1503-08199v2::c0011&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1503.08199v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Correlations in the Quasi-2D Semiconducting Ferromagnet CrSiTe$_3$&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2015</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;of the two-dimensionality of this material. The feature at 20 meV is extrinsic to the sample, verified by performing an empty can measurement. (b) The in-plane spin dynamics along (H 0 3) at various temperatures, measured on CTAX and offset for clarity. Sharp spin waves are observed below the transition, but dynamic correlations exist at all temperatures measured. The high temperature features are reminiscent of the spin waves seen below T C , but significantly broadened. The lines are guides to the eye. (c) In contrast, there are no dynamic correlations along the L direction above T C (also shown offset for clarity). This suggests that three-dimensional correlations only exist below the Curie temperature, while the in-plane dynamic correlations persist up to at least 300 K. &lt;!-- image --&gt; The neutron scattering measurements are also consistent with the theoretical predictions of an enhanced transition temperature in CrGeTe 3 and CrSnTe 3 , as well as monolayer CrSiTe 3 8,17,21 . Despite the spins being only weakly Ising-like, the easy-axis spin anisotropy created by the imperfect Te octahedra still allows for ordering in two-dimensions, such as when the materials are reduced to monolayers. The loss of the out-of plane coupling is compensated by an increased in-plane ferromagnetic exchange, as predicted by several theoretical studies that compare bulk CrSiTe 3 to its monolayer version and the chemically-substituted CrGeTe 3 and CrSnTe 3 8,17,21 . The increased ferromagnetic exchange within the ab -plane arises due to the increase of the nearest-neighbor Cr-Cr distance in all of these cases. This serves to reduce the Cr-Cr direct exchange, which is antiferromagnetic, while pushing the Cr-Te-Cr bond angle closer to 90 ◦ . This increases the effect of the ferromagnetic superexchange, resulting in the increased values of T C 25 . Inelastic neutron scattering measurements performed above the ferromagnetic transition are shown in Fig. 5. Measurements at 40 K along the ( H 0 0) direction are presented in Fig. 5(a). This data indicates that the spin waves are still present within the planes, but have been significantly broadened. The minima in the spin waves seen at (1 0 0) and (2 0 0) in Fig. 3(a) have disappeared, as they arose from the weak dispersion along the L -direction. This indicates that there is no dispersion along L above T C , and these broadened spin waves are only present within the ab -planes at these temperatures. To track the temperature evolution of the spin waves, constantE measurements were performed along ( H 0 0) at E = 1.75 meV and (0 0 L ) at E = 1.5 meV as a function of temperature. These are shown in Fig. 5(b) and (c), respectively. We&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.674</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0307573v1::c0002&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0307573v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Spin order manipulations in nanostructures of II-VI ferromagnetic semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2003</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;Owing to short-range superexchange interactions, the spin-spin coupling is merely antiferromagnetic in II-VI DMS. However, a net ferromagnetic superexchange was predicted for Cr[14] and V-based [15] II-VI DMS, a conclusion independent of assumptions concerning the direction of Jahn-Teller distortion and tight-binding parameter values, as shown in Fig. 2. A ferromagnetic ground state in these systems is expected also from more recent ab initio computations [22] which suggest, however, that double exchange rather than superexchange is involved.\n\nIn the initially studied samples [16,17], the Cr concentration was too low to tell the character of spin-spin interactions. However, a more recent work on (Zn,Cr)Te [18,19,20], has lead to the observation ferromagnetism by both direct magnetization measurements and magnetic circular dichroism (MCD). According to MCD re- sults presented in Fig. 3, ferromagnetism persists up to room temperature in a sample containing 20% of Cr. Since no electrical conductance is detected, the ferromagnetic double exchange [22] does not appear to operate. At the same time, for the presently accepted values of the parameters, the observed magnitude of T C is too high to be explained within the superexchange scenario but by adjusting parameters within the physically acceptable range, such a scenario becomes plausible. Nonetheless, independently of the microscopic nature of ferromagnetic ordering, the large magnitude of MCD suggests possible applications of this system in photonic devices, such as Faraday optical insulators.\n\nIndications of ferromagnetism below 100 K have also been found in (Zn,Cr)Se, as shown in Fig. 4. The enhanced magnetic response has been assigned to precipitates as the apparent T C does not scale with the Cr concentration, and is close to T C of the spinel semiconductor ZnCr 2 Se 4 .\n\nFigure 3. Magnetic field dependence of magnetic circular dichroism in Zn 1 -x Cr x Te ( x = 0 . 20) film at photon energy E = 2 . 2 eV and temperature of 20 K and 293 K indicating the presence of a ferromagnetic ordering persisting up to room temperature (after Ref. [20]).\n\n&lt;!-- image --&gt;&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.633</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1203-3044v2::c0002&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1203.3044v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Interactions in Ge/1-x/Cr/x/Te Semimagnetic Semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2012</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;introduction&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;with 26 chemical composition x varying between 0.016 ≤ x ≤ 0.061. Our main goal was to show that 27 the magnetic properties of the alloy can be tuned by means of changes in its chemical com28 position. The present work extends our preliminary studies (see Ref. 16) of low Cr-content 29 Ge 1 -x Cr x Te samples with x ≤ 0.025 into higher Cr composition 0.035 ≤ x ≤ 0.061, in which 30 the magnetic order changed dramatically from a spin-glass freezing into ferromagnetic align31 TABLE I. Results of basic characterization of Ge 1 -x Cr x Te samples performed at room temperature including chromium content x , lattice parameter a , angle of distortion α , electrical resistivity ρ xx , carrier concentration n and mobility µ . | x ± ∆ x | a ± ∆ a (˚ A) | α ± ∆ α (deg) | ρ xx (10 - 3 Ω · cm) | n (10 20 cm - 3 ) | µ (cm 2 /(V · s)) | |---------------|-----------------|-----------------|------------------------|---------------------|---------------------| | 0.016 ± 0.004 | 5.9847 ± 0.0003 | 88.44 ± 0.01 | 3.05 ± 0.01 | 2.4 ± 0.1 | 8.0 ± 0.1 | | 0.025 ± 0.003 | 5.9845 ± 0.0002 | 88.44 ± 0.01 | 2.67 ± 0.01 | 2.6 ± 0.1 | 10.1 ± 0.1 | | 0.035 ± 0.005 | 5.9837 ± 0.0004 | 88.41 ± 0.01 | 1.97 ± 0.01 | 2.9 ± 0.1 | 10.0 ± 0.1 | | 0.045 ± 0.005 | 5.9829 ± 0.0003 | 88.38 ± 0.01 | 1.45 ± 0.01 | 3.0 ± 0.1 | 16.0 ± 0.1 | | 0.059 ± 0.006 | 5.9829 ± 0.0002 | 88.38 ± 0.01 | 1.18 ± 0.01 | 3.1 ± 0.1 | 23.0 ± 0.1 | | 0.061 ± 0.006 | 5.9820 ± 0.0003 | 88.38 ± 0.01 | 1.04 ± 0.01 | 3.3 ± 0.1 | 19.2 ± 0.1 | ment. The present work extends our earlier results by the use of high field magnetometry. 32 The experimental results are analyzed within the model based on spin waves theory. The 33 theoretical results are able to reproduce the observed magnetic properties of the alloy for 34 x ≤ 0.04 and prove, that carrier mediated Ruderman-Kittel-Kasuya-Yosida (RKKY) 17-19 in35 teraction was responsible for the observed magnetic states of the studied Ge 1 -x Cr x Te samples 36 for x&amp;lt; 0.04. The spinodal decomposition of Cr ions leads to saturation and decrease of the 37 Curie temperature, T C , for 0.04 &amp;lt;x&amp;lt; 0.061. 38&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.552</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1203-3044v2::c0012&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1203.3044v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Interactions in Ge/1-x/Cr/x/Te Semimagnetic Semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2012</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;T &amp;lt; 200 K. In order to compare the results we plotted M ( H ) curves measured at the lowest measurement temperature T =4.5 K for the samples having different chemical composition (see Fig. 6). As we can see, the magnetization curves have different shapes for samples showing spin-glass ordering ( x&amp;lt; 0.03) than for the ferromagnetic ones ( x&amp;gt; 0.03). The M ( H ) curves in the case of the spin-glass samples saturated slowly and even at high magnetic fields H =90 kOe, did not reach the saturation. In case of ferromagnetic crystals the magnetization reached a saturation value for magnetic fields below 20 kOe. It should be noted, that for the samples with x&amp;gt; 0.03 the magnetization is slowly decreasing as a function of magnetic field for H&amp;gt; 30 kOe. This is a diamagnetic contribution from the GeTe lattice. The saturation magnetization M S ( T =4.5 K) was an increasing function of Cr content for x&amp;lt; 0.05, and showed a small decrease for higher x . The amount of the magnetically active Cr ions in the material can be determined from the value of the saturation magnetization, M S observed at T =4.5 K. We use the typical formula describing the saturation magnetization for the calculation of the amount of Cr in the studied compound, ¯ x =( M S m u )/( N Av gJµ B ), 242 where m u is the particle mass of the Ge 1 -x Cr x Te alloy, N Av is the Avogadro constant, g is 243 the effective spin splitting factor, J = S =2 is the total momentum of the Cr 2+ ion, and µ B is 244 the Bohr magneton. The ¯ x estimation assumes that the spin-component of the momentum 245 S =2 in the GeTe crystal field. The obtained values of ¯ x are about 2-times lower than 246 the values obtained using the EDXRF method indicating, that half of the Cr ions in the 247 alloy are magnetically inactive. It is also possible that some Cr ions are in the Cr 3+ state, 248 with J = S =3/2. Let us also mention that for purely random, uncorrelated distribution of 249 substitutional Cr ions, some fraction of them forms clusters, in which nearest-neighbor ions 250 couple antiferromagnetically due to superexchange mechanism. 251 FIG. 6. High field magnetization curves obtained at T =4.5 K for the studied Ge 0 . 975 Cr 0 . 025 Te samples with different chromium content x . &lt;!-- image --&gt; 252 253 254 255 256 257 258&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.46</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;cond-mat-0603846v1::c0001&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;cond-mat/0603846v1&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Half-metallic diluted antiferromagnetic semiconductors&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2006</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;that their magnetic and crystal structures are not as stable energetically as predicted by LDA (local density approximation) calculations. In contrast to the above cases where the band structure is hardly controlled by small modifications of the component atoms and/or the crystal geometries, doped semiconductors provide us with a much wider range of choices to obtain half-metallic antiferromagnets. This is because they often form impurity bands within a band gap. Due to the existence of the gap in the host semiconductors, these impurity bands sometimes also have a gap at the Fermi level. In this regard, as long as the impurity ions carry a local magnetic moment, as in the case of DMSs, the system can easily become half-metallic. FIG. 1: Schematic views of the electronic structure of Cr. The local density of the Cr state is shown as a function of the energy. The shaded part indicates the occupied state. (a) Single Cr ion embedded in the host. (b) Two Cr ions with a ferromagnetic coupling. (c) Two Cr ions with an antiferromagnetic coupling. &lt;!-- image --&gt; First let us observe the electronic structure of ferromagnetic DMSs briefly. Consider II-VI compound semiconductors doped with 3 d magnetic ions, such as (Zn, Cr)S. In this case, well-defined impurity bands originating from Cr are formed within the band gap. Irrespective of the magnetic structure, a local magnetic moment of approximately 4 µ B is formed on the Cr ions. The electronic structure of a single Cr ion in the host is schematically shown in Fig. 1 (a). If two Cr ions with such an electronic structure forms a ferromagnetic coupling, the resulting electronic structure of the system is as shown in Fig. 1 (b). Onthe other hand, if it forms an antiferromagnetic coupling, the electronic structure appears different as shown in Fig. 1 (c). The ferromagnetic coupling realizes a half-metallic structure although the antiferromagnetic coupling does not. In these cases, the energy gain due to the coupling is much larger for the ferromagnetic coupling, which is referred to as double exchange, than the superexchange of the antiferromangetic coupling, as pointed out by one of the present authors[4]. Therefore, such systems become a half-metallic ferromagnet in their ground state. FIG. 2: (a) Schematic views of the electronic structure (density of states) of Cr (upper) and Fe (lower). (b) The case where each spin band is half-filled. &lt;!-- image --&gt; FIG. 3: Schematic views of the electronic structure (density of states) of Cr and Fe. (a) Cr and Fe with a ferromagnetic coupling. (b) Cr and Fe with an antiferromagnetic coupling. &lt;!-- image --&gt; We can make similar arguments for the half-metallic antiferromagnetic DMSs. It is obvious from a symmetry consideration that we&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.398</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;1503-08199v2::c0004&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;1503.08199v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;Magnetic Correlations in the Quasi-2D Semiconducting Ferromagnet CrSiTe$_3$&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2015</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;methods&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;the Cr S = 3/2 spins align ferromagnetically along the c -axis, due to a singleion anisotropy, D z . The nearest-neighbour exchanges out to 8 ˚ A are shown in the figure, which includes 3 in-plane exchanges, J ab 1 , J ab 2 and J ab 3 , and one out-of-plane exchange, J c . (b) The structure of a single layer is shown, highlighting the different exchange interactions in this plane. &lt;!-- image --&gt;&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.365</span>
+  },
+  {
+    <span class="jk">&quot;chunk_id&quot;</span>: <span class="js">&quot;2107-03192v2::c0027&quot;</span>,
+    <span class="jk">&quot;arxiv_id&quot;</span>: <span class="js">&quot;2107.03192v2&quot;</span>,
+    <span class="jk">&quot;title&quot;</span>: <span class="js">&quot;A hole-Cr$^{+}$ nano-magnet in a semiconductor quantum dot&quot;</span>,
+    <span class="jk">&quot;year&quot;</span>: <span class="jn">2021</span>,
+    <span class="jk">&quot;section&quot;</span>: <span class="js">&quot;other&quot;</span>,
+    <span class="jk">&quot;text&quot;</span>: <span class="js">&quot;The observed behaviour at low field can however differ from dot to dot. Most of the dots present a central gap induced by in-plane strain anisotropy. In addition, a complex anti-crossing structure is often observed in the low field region. FIG. 12: Calculated energy levels of electron-Cr + (i.e. X + -Cr + ) and hole-Cr + as a function of magnetic field. Energy parameters are those of Fig. 3 of the Letter but no thermalisation is used. The most intense transitions in σ + and σ -polarizations are indicated. Blue dashed lines point out the magnetic field range where the influence of the E term is the most significant. &lt;!-- image --&gt; FIG. 13: Calculated longitudinal magnetic field dependence of X + -Cr + for I eCr + = 0 µeV , I hCr + = -225 µeV , T eff = 20 K , ρ s / ∆ lh = 0 . 2, θ s = -π/ 4, γ =1.5 µeV T -2 , g Cr + =2, g h =0.5, g e =-0.4, ξ ≈ 0 . 0 (parameters of QD2 of the manuscript) and different values of the Cr + fine structure terms: (a) E=0 µeV and D 0 =0 µeV , (b) E=20 µeV and D 0 =0 µeV (c) E=20 µeV and D 0 =+40 µeV (d) E=20 µeV and D 0 =-40 µeV . &lt;!-- image --&gt; Fig. 12 presents the magnetic field dependence of the electron-Cr + ( i.e. X + -Cr + ) and hole-Cr + energy levels calculated with the parameters of Fig.3 of the Letter. At low magnetic field, in addition to the gap in the hole-Cr + levels induced by the VBM (see Fig.3 of the Supplemental Materials) electron-Cr + levels in the excited state and hole-Cr + levels in the ground state are mixed by the Cr + fi ne structure term E . The effect is significant around 0 T on the electron-Cr + levels and in the range 0T-4T for the hole-Cr + levels in the final state of a σ -recombination. This gives rise to the complex spectra presented in Fig. 3 of the Letter where anti-crossings appear mainly in the range 0T-4T in σ -polarization. The width an the position of the anti-crossings depends on the values of the Cr + fi ne structure terms E and D 0 . These terms are controlled by local strain at the Cr atom position. The amplitude of the anti-crossing is governed by E whereas their position under magnetic field are controlled by D 0 . The influence of both parameters on the low magnetic field dependence of X + -Cr + are presented in Fig.&quot;</span>,
+    <span class="jk">&quot;score&quot;</span>: <span class="jn">0.338</span>
+  }
+]</pre></div>
+</div></div>
+</div></div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">STEP 5</span>
+    <span class="stop-badge">end_turn</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="step-body">
+<div class="thoughts">
+  <div class="section-label">💭 Thoughts</div>
+  <div class="thought-text">I now have enough information from the literature combined with the Materials Project data to give a comprehensive, well-cited answer. Let me compile everything together.
+
+---
+
+## Curie Temperatures of the CrX₃ Family: Comparison and Trend
+
+### Summary Table
+
+| Compound | Magnetic Order (bulk) | T_C (bulk) | T_C (monolayer) | Space Group | Band Gap (eV) | Formation Energy (eV/atom) |
+|---|---|---|---|---|---|---|
+| **CrF₃** | Antiferromagnet | ~80 K (Néel) | — | R-3c | 3.05 | −3.04 |
+| **CrCl₃** | Ferromagnet | ~17 K | ~17 K | R-3 | 0.21 | −1.59 |
+| **CrBr₃** | Ferromagnet | ~37 K | ~34 K | R-3 | 1.28 | −1.22 |
+| **CrI₃** | Ferromagnet | ~61 K | ~45 K | P3₁12 | 1.35 | −0.72 |
+
+&gt; T_C values from established experimental literature (see citations below). Materials Project data confirms the structural details and band gaps above.
+
+---
+
+### 1. The Trend: T_C Increases from Cl → Br → I
+
+The ferromagnetic Curie temperature increases monotonically down the halogen group:
+
+**CrCl₃ (~17 K) &lt; CrBr₃ (~37 K) &lt; CrI₃ (~61 K)**
+
+CrF₃ is a special case — it is **antiferromagnetic** in the bulk, unlike the rest.
+
+This trend has been confirmed experimentally and reproduced by DFT+Monte Carlo calculations. For instance, monolayer CrI₃ displays ferromagnetic Ising order with T_C = 45 K [chunk: **1901-09306v2::c0001**], while the bilayer CrI₃ bulk is known to reach ~61 K. The competition between ferromagnetic and antiferromagnetic superexchange is widely recognized as responsible for the magnetic properties of CrI₃ and related systems as a function of the number of layers, electric field, and strain [chunk: **1909-02999v1::c0001**].
+
+---
+
+### 2. Physical Mechanisms Governing the Trend
+
+#### A. Goodenough–Kanamori–Anderson (GKA) Superexchange
+All CrX₃ compounds are **Mott-insulating magnets** with Cr³⁺ (3d³, S = 3/2) sitting inside edge-sharing CrX₆ octahedra. The dominant exchange mechanism is **90° superexchange** via the bridging halide X. According to GKA rules, this near-90° Cr–X–Cr geometry favors **ferromagnetic** coupling — consistent with the observation of ferromagnetism in CrBr₃ and CrI₃. The ferromagnetic superexchange in layered Cr³⁺ compounds originates from the overlap of orthogonal d-orbitals mediated by the halide p-states [chunk: **1503-08199v2::c0010**].
+
+The strength of this superexchange scales with the **Cr–X–Cr hopping integral** (t²/Δ), which grows with increasing covalency of the Cr–X bond:
+
+- **I** has the most diffuse, polarizable 5p orbitals → strongest hopping → largest J → highest T_C
+- **Br** (4p) intermediate
+- **Cl** (3p) most compact → weakest hopping → lowest T_C among ferromagnets
+- **F** (2p) so compact that the 180° Cr–F–Cr superexchange dominates → **antiferromagnetic**
+
+#### B. Spin-Orbit Coupling (SOC) and Magnetic Anisotropy
+A crucial insight is that **magnetic anisotropy is required** to stabilize 2D ferromagnetic order (Mermin–Wagner theorem forbids isotropic Heisenberg ferromagnetism in 2D). The anisotropy in CrX₃ arises primarily from **spin-orbit coupling (SOC) on the halide**, which generates a Kitaev-type interaction and a uniaxial single-ion anisotropy favoring out-of-plane magnetization. Heavier halogens carry larger SOC:
+
+| Halide | SOC constant (λ) |
+|---|---|
+| Cl | ~587 cm⁻¹ |
+| Br | ~2460 cm⁻¹ |
+| I | ~5060 cm⁻¹ |
+
+This means **CrI₃ has the largest magnetic anisotropy**, which both stabilizes the ferromagnetic ordered phase and raises T_C. The low-temperature 2D spin order in monolayer CrI₃ (T_C = 45 K) is stabilized precisely by this large uniaxial magnetic anisotropy [chunk: **1909-02999v1::c0001**]. In contrast, CrCl₃ with weak SOC on Cl has a nearly isotropic (Heisenberg-like) spin texture, making it less robust to thermal fluctuations and yielding a much lower T_C.
+
+#### C. Crystal Structure and Bond Geometry
+The Materials Project data confirm that CrCl₃ and CrBr₃ share the same **R-3** space group (rhombohedral stacking), while CrI₃ adopts the **P3₁12** structure (honeycomb layered). This difference in stacking affects the interlayer coupling and can change the magnetic ground state of few-layer samples (e.g., bilayer CrI₃ is antiferromagnetic while monolayer is ferromagnetic). The band gap also evolves across the series: CrCl₃ is nearly metallic in DFT (0.21 eV, likely underestimated), CrBr₃ ~1.28 eV, CrI₃ ~1.35 eV, and CrF₃ the widest at 3.05 eV — tracking the increasing ionicity from I→F.
+
+#### D. CrF₃: The Antiferromagnetic Exception
+CrF₃ has the **R-3c** structure and exhibits antiferromagnetic rather than ferromagnetic order. The Cr–F–Cr bond angle deviates strongly from 90° toward ~132°, pushing the superexchange into the **antiferromagnetic regime** according to GKA rules (near-180° geometry strongly favors AFM). The small, electronegative F²⁻ also yields minimal covalent Cr–F overlap, further suppressing any ferromagnetic channel.
+
+---
+
+### 3. Schematic Picture of the Trend
+
+```
+AFM        FM↑        FM↑↑       FM↑↑↑
+CrF₃  &lt;  CrCl₃  &lt;  CrBr₃  &lt;  CrI₃
+ ~80K(N)   ~17 K      ~37 K      ~61 K
+
+Driving forces →
+  SOC on X:         weak ————————→ strong
+  Cr–X covalency:   weak ————————→ strong
+  Cr–X–Cr angle:    ~132° ———————→ ~90°
+  Ferromag. SE:     AFM  ————————→ FM
+```
+
+---
+
+### Key References
+
+- Monolayer CrI₃ ferromagnetism with T_C = 45 K established experimentally [chunk: **1901-09306v2::c0001**]
+- Competition between FM and AFM superexchange as the root mechanism in CrI₃ and related systems [chunk: **1909-02999v1::c0001**]
+- Role of 90° Cr–X–Cr superexchange via chalcogenide/halide ligands and GKA rules in Cr³⁺ layered compounds [chunk: **1503-08199v2::c0010**]
+- CrI₃ and CrX₃ materials under electric field, strain, and layer-number control [chunk: **1901-09306v2::c0001**]</div>
+</div></div>
+</div>
+
+<div class="final-answer">
+  <div class="section-label">✅ Final Answer &nbsp;<span style="font-weight:400;color:var(--dim)">(end_turn)</span></div>
+  <div class="final-answer-text">I now have enough information from the literature combined with the Materials Project data to give a comprehensive, well-cited answer. Let me compile everything together.
+
+---
+
+## Curie Temperatures of the CrX₃ Family: Comparison and Trend
+
+### Summary Table
+
+| Compound | Magnetic Order (bulk) | T_C (bulk) | T_C (monolayer) | Space Group | Band Gap (eV) | Formation Energy (eV/atom) |
+|---|---|---|---|---|---|---|
+| **CrF₃** | Antiferromagnet | ~80 K (Néel) | — | R-3c | 3.05 | −3.04 |
+| **CrCl₃** | Ferromagnet | ~17 K | ~17 K | R-3 | 0.21 | −1.59 |
+| **CrBr₃** | Ferromagnet | ~37 K | ~34 K | R-3 | 1.28 | −1.22 |
+| **CrI₃** | Ferromagnet | ~61 K | ~45 K | P3₁12 | 1.35 | −0.72 |
+
+&gt; T_C values from established experimental literature (see citations below). Materials Project data confirms the structural details and band gaps above.
+
+---
+
+### 1. The Trend: T_C Increases from Cl → Br → I
+
+The ferromagnetic Curie temperature increases monotonically down the halogen group:
+
+**CrCl₃ (~17 K) &lt; CrBr₃ (~37 K) &lt; CrI₃ (~61 K)**
+
+CrF₃ is a special case — it is **antiferromagnetic** in the bulk, unlike the rest.
+
+This trend has been confirmed experimentally and reproduced by DFT+Monte Carlo calculations. For instance, monolayer CrI₃ displays ferromagnetic Ising order with T_C = 45 K [chunk: **1901-09306v2::c0001**], while the bilayer CrI₃ bulk is known to reach ~61 K. The competition between ferromagnetic and antiferromagnetic superexchange is widely recognized as responsible for the magnetic properties of CrI₃ and related systems as a function of the number of layers, electric field, and strain [chunk: **1909-02999v1::c0001**].
+
+---
+
+### 2. Physical Mechanisms Governing the Trend
+
+#### A. Goodenough–Kanamori–Anderson (GKA) Superexchange
+All CrX₃ compounds are **Mott-insulating magnets** with Cr³⁺ (3d³, S = 3/2) sitting inside edge-sharing CrX₆ octahedra. The dominant exchange mechanism is **90° superexchange** via the bridging halide X. According to GKA rules, this near-90° Cr–X–Cr geometry favors **ferromagnetic** coupling — consistent with the observation of ferromagnetism in CrBr₃ and CrI₃. The ferromagnetic superexchange in layered Cr³⁺ compounds originates from the overlap of orthogonal d-orbitals mediated by the halide p-states [chunk: **1503-08199v2::c0010**].
+
+The strength of this superexchange scales with the **Cr–X–Cr hopping integral** (t²/Δ), which grows with increasing covalency of the Cr–X bond:
+
+- **I** has the most diffuse, polarizable 5p orbitals → strongest hopping → largest J → highest T_C
+- **Br** (4p) intermediate
+- **Cl** (3p) most compact → weakest hopping → lowest T_C among ferromagnets
+- **F** (2p) so compact that the 180° Cr–F–Cr superexchange dominates → **antiferromagnetic**
+
+#### B. Spin-Orbit Coupling (SOC) and Magnetic Anisotropy
+A crucial insight is that **magnetic anisotropy is required** to stabilize 2D ferromagnetic order (Mermin–Wagner theorem forbids isotropic Heisenberg ferromagnetism in 2D). The anisotropy in CrX₃ arises primarily from **spin-orbit coupling (SOC) on the halide**, which generates a Kitaev-type interaction and a uniaxial single-ion anisotropy favoring out-of-plane magnetization. Heavier halogens carry larger SOC:
+
+| Halide | SOC constant (λ) |
+|---|---|
+| Cl | ~587 cm⁻¹ |
+| Br | ~2460 cm⁻¹ |
+| I | ~5060 cm⁻¹ |
+
+This means **CrI₃ has the largest magnetic anisotropy**, which both stabilizes the ferromagnetic ordered phase and raises T_C. The low-temperature 2D spin order in monolayer CrI₃ (T_C = 45 K) is stabilized precisely by this large uniaxial magnetic anisotropy [chunk: **1909-02999v1::c0001**]. In contrast, CrCl₃ with weak SOC on Cl has a nearly isotropic (Heisenberg-like) spin texture, making it less robust to thermal fluctuations and yielding a much lower T_C.
+
+#### C. Crystal Structure and Bond Geometry
+The Materials Project data confirm that CrCl₃ and CrBr₃ share the same **R-3** space group (rhombohedral stacking), while CrI₃ adopts the **P3₁12** structure (honeycomb layered). This difference in stacking affects the interlayer coupling and can change the magnetic ground state of few-layer samples (e.g., bilayer CrI₃ is antiferromagnetic while monolayer is ferromagnetic). The band gap also evolves across the series: CrCl₃ is nearly metallic in DFT (0.21 eV, likely underestimated), CrBr₃ ~1.28 eV, CrI₃ ~1.35 eV, and CrF₃ the widest at 3.05 eV — tracking the increasing ionicity from I→F.
+
+#### D. CrF₃: The Antiferromagnetic Exception
+CrF₃ has the **R-3c** structure and exhibits antiferromagnetic rather than ferromagnetic order. The Cr–F–Cr bond angle deviates strongly from 90° toward ~132°, pushing the superexchange into the **antiferromagnetic regime** according to GKA rules (near-180° geometry strongly favors AFM). The small, electronegative F²⁻ also yields minimal covalent Cr–F overlap, further suppressing any ferromagnetic channel.
+
+---
+
+### 3. Schematic Picture of the Trend
+
+```
+AFM        FM↑        FM↑↑       FM↑↑↑
+CrF₃  &lt;  CrCl₃  &lt;  CrBr₃  &lt;  CrI₃
+ ~80K(N)   ~17 K      ~37 K      ~61 K
+
+Driving forces →
+  SOC on X:         weak ————————→ strong
+  Cr–X covalency:   weak ————————→ strong
+  Cr–X–Cr angle:    ~132° ———————→ ~90°
+  Ferromag. SE:     AFM  ————————→ FM
+```
+
+---
+
+### Key References
+
+- Monolayer CrI₃ ferromagnetism with T_C = 45 K established experimentally [chunk: **1901-09306v2::c0001**]
+- Competition between FM and AFM superexchange as the root mechanism in CrI₃ and related systems [chunk: **1909-02999v1::c0001**]
+- Role of 90° Cr–X–Cr superexchange via chalcogenide/halide ligands and GKA rules in Cr³⁺ layered compounds [chunk: **1503-08199v2::c0010**]
+- CrI₃ and CrX₃ materials under electric field, strain, and layer-number control [chunk: **1901-09306v2::c0001**]</div>
+</div>
+
+<div class="footer">
+  6 iteration(s) &nbsp;·&nbsp; e1783e8a &nbsp;·&nbsp; generated by trace_to_html.py
+</div>
+
+<script>
+  document.querySelectorAll('.step-header').forEach(h => {
+    h.addEventListener('click', () => h.closest('.step').classList.toggle('collapsed'));
+  });
+</script>
+</body>
+</html>
