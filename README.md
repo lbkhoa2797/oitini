@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <em>Note: This public release is behind the current developer version. Feel free to get in touch if you'd like access to the latest and more complete version.</em>
+  <em>Note: This public release is behind the current developer version. Feel free to get in touch for the latest and more complete version.</em>
 </p>
 
 <p align="center">
