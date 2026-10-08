@@ -1,7 +1,11 @@
 <h1 align="center">Oitini</h1>
 
 <p align="center">
-  <strong>A closed-loop agentic system for first-principles materials discovery.</strong><br>
+  <strong>A closed-loop agentic system for first-principles materials discovery.</strong>
+</p>
+
+<p align="center">
+  <em>Note: This repository is a reduced demo of the project. A more complete version is available on request, so feel free to get in touch.</em>
 </p>
 
 <p align="center">
