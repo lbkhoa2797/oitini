@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <em>Note: This repository is a reduced demo of the project. A more complete version is available on request, so feel free to get in touch.</em>
+  <em>Note: This is the public release, which trails the current developer version. Feel free to get in touch if you'd like access to the latest version.</em>
 </p>
 
 <p align="center">
