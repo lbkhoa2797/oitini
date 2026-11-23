@@ -4,7 +4,9 @@
   <strong>A closed-loop agentic system for first-principles materials discovery.</strong><br>
 </p>
 
+<p align="center">
 <em>Note: This public demo is an early release. The latest version, with additional features, is available on request.</em>
+</p>
 
 <p align="center">
   <a href="#license"><img alt="License: GPL-3.0"
@@ -85,49 +87,35 @@ The repo is co-authored by: Anthropic Claude.
                                             └───────────┘  → faithfulness_rate
 ```
 ## Design
+**One protocol sets every parameter.** All Quantum ESPRESSO inputs come from a single protocol,
+built in three layers: an accuracy tier, then material rules (cutoffs from the pseudopotentials,
+k-grids from the cell), then literature values, which are accepted only if whitelisted and within
+bounds. Every field records which layer set it.
 
-**Every Quantum ESPRESSO parameter comes from one resolved `Protocol`**
-([modules/protocol.py](modules/protocol.py)) — the only thing in the repo allowed to produce a
-namelist. It resolves in three layers, each recorded per field: an accuracy **tier**, then
-deterministic **material rules** (cutoffs from the installed pseudopotentials, grids from the cell),
-then **cited literature proposals**, whitelisted and bounds-checked or rejected with a reason. Cache
-keys chain per stage — `scf → {nscf, ph} → wann → qe2pert` — so editing a Wannier window re-runs the
-Wannierization and re-uses the NSCF and the phonons.
+**Each stage builds on a verified record of the last.** The chain runs SCF → NSCF and phonons →
+Wannierization → electron–phonon interpolation. Each stage records the protocol and environment
+that produced it, so changing one setting re-runs only the stages it affects. A record that can't
+be verified counts as a cache miss, so stale results are never reused.
 
-**Every stage writes a run record** ([modules/runrecord.py](modules/runrecord.py)): the resolved
-protocol that produced it, its cache key, and the environment it ran in. The next stage reads that
-record rather than reverse-engineering the previous one's input files, and a record it cannot vouch
-for is a cache miss rather than a hit — so a cached result is never returned for parameters it was
-not computed under.
+**The output is transport coefficients.** Depending on the request, the agent can drive Perturbo
+to solve the Boltzmann transport equation for conductivity, mobility, Seebeck coefficient and
+electronic thermal conductivity.
 
+**Transport settings are derived per material.** The band range, energy window and transport
+k-grid are always computed fresh, never copied from papers.
 
-**The chain ends in transport coefficients.** `run_perturbo`
-([tools/perturbo.py](tools/perturbo.py)) solves the Boltzmann transport equation on
-`{prefix}_epr.h5` and returns the conductivity, mobility, Seebeck and electronic
-thermal-conductivity tensors, parsed from perturbo's YAML with the units it declares in-band.
+**Every SCF starts from a relaxed cell.** Structures from Materials Project are relaxed with the
+pseudopotentials' functional, so the geometry and results are consistent. Spin-polarised systems
+aren't relaxed yet.
 
+**Three accuracy tiers keep sweeps affordable.** Screening is about 8× cheaper and skips
+electron–phonon work. Production and converged add accuracy but more computationally demanding.
+Promotions and batch sizes are capped, and every truncation is recorded.
 
-Three things are **derived per material, never copied from a paper**, because a transport window is
-meaningless against a different band structure: the band range, the energy window (anchored to the
-*chemical potential*, not the band edge — degenerate doping puts μ inside the band), and
-`boltz_kdim`, which escalates until the window holds enough states.
-
-
-**Every SCF runs on a relaxed cell and reports whether it is at equilibrium.** `run_dft` first
-relaxes the Materials Project structure with the installed pseudopotentials' functional (`vc-relax`;
-`cell_dofree='2Dxy'` for a monolayer; spin-polarised runs are not relaxed in the current version,
-and a gapped magnetic state runs fixed occupations at its integer moment), so the geometry and the
-numbers come from one functional.
-
-**Three tiers** make a wide sweep affordable: `screening` (~8× cheaper per SCF, electron–phonon work
-refused outright), `production`, `converged`. A sweep enters at `SWEEP_TIER` and may be promoted no
-further than `MAX_TIER`. Candidate counts, batch sizes and promotions are hard code caps, and every
-truncation is recorded rather than silent.
-
-**Cost ceilings are explicit, and hitting one is reported as a cost decision rather than a physics
-verdict.** `MAX_EPH_ATOMS`, when set, declines a chain on cell size — the electron–phonon cost runs
-as `3N · n_irr_q` — and says so in those terms, because a candidate too expensive to chain may still
-have been chosen correctly.
+**Cost limits are reported as cost decisions.** An optional cap on cell size can stop expensive
+electron–phonon chains. The workflow reports this as a cost decision, not a verdict on the
+candidate. This prevents the agent got stuck too long in an expensive candidate while high-throughput
+screening.
 
 **The Perturbo chain, stage by stage.**
 
@@ -329,28 +317,16 @@ python -m graph.show_thoughts <run_id> # --help for options
   src="https://github.com/user-attachments/assets/2fafe505-5ea5-4085-a15c-e59db736d7dc" />
 
 
-<!-- ## Repository layout
+## Repository layout
 
 ```
 agent.py           ReAct workflow agent (Perturbot)
 graph/             LangGraph closed-loop discovery system
 tools/             The agent's tools, one module per registry.py entry: DFT, Wannier90, DFPT,
                    qe2pert, perturbo, retrieval, MP lookup, magnetic order
-modules/           What those tools are built on
-  protocol.py      resolved parameters + tiers + cache keys — the only namelist producer
-  constants.py     fixed physics: unit conversions and the measured thresholds results are judged by
-  runrecord.py     one reader/writer for every stage's result.json, and the cache-miss rules
-  utils.py         shared helpers: geometry, k/q grids, pseudopotential cutoffs, e-ph plan validator
-  launcher.py      the one MPI launcher: srun/mpirun, rank and thread sizing, wall-clock limits
-  ph_ladder.py     DFPT cost model and the ph.x k-mesh ladder under PH_BUDGET_S
-  wannier_gauge.py gauge quality: band interpolation against pw.x, centres in a slab's vacuum
-  projections.py   atomic projections, the fallback gauge: shell rule plus one model call
-  valley_check.py  Wannier band-edge valleys against pw.x off the Wannier grid
-  citations.py     chunk_id and verbatim-quote checks for literature-derived values
-  magnetism.py, magnetic_order.py, spin_configs.py, spin.py
-                   magnetic classification (stages 1 and 2) and per-channel LSDA helpers
+modules/           Modules that the tools are built on
 rag/               Retrieval pipeline: chunking, embedding, hybrid search
-mcp_server/        MCP server fronting the simulation and retrieval tools
+mcp_server/        MCP server fronting the simulation and retrieval tools (Experimental)
 scripts/           Corpus build: query check → download → parse → chunk & index
                    (build_corpora.sh runs them end to end)
 benchmark_scripts/ Development and benchmark tooling, not needed for a run
@@ -362,7 +338,7 @@ eval/              FINDINGS.md: what the 2026 benchmarks measured (the harness i
 utils/             Trace rendering (trace2html.py) and helpers
 docs/              Design notes (pipeline-and-graph.md) and published sample outputs
 config.py          Corpus settings, model tiers, tuning (machine paths live in .env)
-``` -->
+```
 
 ## Key dependencies
 
@@ -380,7 +356,7 @@ config.py          Corpus settings, model tiers, tuning (machine paths live in .
 
 ## About the name
 
-It's `Initio` being spelled backward. I think it is funny for a robot that can do `ab initio`
+It's `Initio` being spelled backward. I just think it's a fun name for an agent that can do `ab initio`
 calculations.
 
 ## Citation
