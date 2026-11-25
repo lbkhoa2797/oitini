@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-<em>Note: This public demo is an early release. The latest version, with additional features, is available on request.</em>
+<em>Note: This public demo is an early release, and some features are not yet available. We are systematically benchmarking the agent and expect to release a publication shortly, followed by the complete code. Please stay tuned for updates.</em>
 </p>
 
 <p align="center">
